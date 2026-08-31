@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QR Studio — ระบบสร้าง QR Code</title>
+<meta name="description" content="ระบบสร้าง QR Code ออนไลน์ ฟรี รองรับ URL, WiFi, vCard และดาวน์โหลด PNG ความละเอียดสูง">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔷</text></svg>">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root{
+    --blue-900:#0a1633; --blue-800:#0f2154; --blue-700:#14307a;
+    --blue-600:#1d4ed8; --blue-500:#2563eb; --blue-400:#3b82f6;
+    --blue-300:#60a5fa; --blue-200:#93c5fd; --cyan:#22d3ee;
+    --txt:#e8efff; --muted:#9db3dd;
+    --glass:rgba(255,255,255,.06); --line:rgba(147,197,253,.22);
+    --radius:18px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:"Segoe UI",system-ui,-apple-system,"Noto Sans Thai",sans-serif;
+    min-height:100vh; color:var(--txt);
+    background:
+      radial-gradient(1000px 600px at 12% -10%, #1e40af55, transparent 60%),
+      radial-gradient(900px 600px at 90% 110%, #0891b244, transparent 60%),
+      linear-gradient(160deg, var(--blue-900), #071026 55%, var(--blue-800));
+    background-attachment:fixed;
+    padding:32px 16px 64px;
+  }
+  .wrap{max-width:1080px;margin:0 auto}
+  header{text-align:center;margin-bottom:34px}
+  .badge{
+    display:inline-block;padding:6px 16px;border-radius:999px;font-size:12.5px;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--blue-200);
+    background:var(--glass);border:1px solid var(--line);margin-bottom:14px;
+  }
+  h1{
+    font-size:clamp(30px,5.2vw,46px);font-weight:800;line-height:1.2;
+    background:linear-gradient(100deg,#fff,var(--blue-300) 45%,var(--cyan));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  header p{color:var(--muted);margin-top:10px;font-size:15px}
+
+  .grid{display:grid;grid-template-columns:1.15fr .85fr;gap:24px;align-items:start}
+  .card{
+    background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.03));
+    border:1px solid var(--line);border-radius:var(--radius);
+    padding:26px;backdrop-filter:blur(14px);
+    box-shadow:0 22px 50px -22px rgba(0,0,0,.75);
+  }
+  .card h2{font-size:16px;margin-bottom:18px;display:flex;align-items:center;gap:9px}
+  .card h2::before{content:"";width:4px;height:18px;border-radius:4px;background:linear-gradient(var(--blue-300),var(--cyan))}
+
+  .tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+  .tab{
+    padding:8px 15px;border-radius:11px;font-size:13.5px;cursor:pointer;
+    background:var(--glass);border:1px solid var(--line);color:var(--muted);
+    transition:.22s;user-select:none;
+  }
+  .tab:hover{color:#fff;border-color:var(--blue-400)}
+  .tab.active{
+    background:linear-gradient(135deg,var(--blue-600),var(--blue-400));
+    color:#fff;border-color:transparent;box-shadow:0 8px 20px -8px var(--blue-500);
+  }
+
+  .field{margin-bottom:15px}
+  label{display:block;font-size:13px;color:var(--blue-200);margin-bottom:7px;font-weight:600}
+  input[type=text],input[type=password],input[type=email],input[type=tel],textarea,select{
+    width:100%;padding:12px 14px;border-radius:12px;font-size:14.5px;font-family:inherit;
+    background:rgba(4,12,32,.62);border:1px solid var(--line);color:var(--txt);
+    outline:none;transition:.22s;
+  }
+  input:focus,textarea:focus,select:focus{
+    border-color:var(--blue-400);box-shadow:0 0 0 4px rgba(59,130,246,.16);background:rgba(4,12,32,.85);
+  }
+  textarea{resize:vertical;min-height:104px}
+  select option{background:#0b1a3d}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .pane{display:none;animation:fade .3s ease}
+  .pane.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  input[type=range]{width:100%;height:6px;border-radius:6px;appearance:none;
+    background:linear-gradient(90deg,var(--blue-400),var(--cyan));cursor:pointer}
+  input[type=range]::-webkit-slider-thumb{appearance:none;width:19px;height:19px;border-radius:50%;
+    background:#fff;border:3px solid var(--blue-500);box-shadow:0 3px 10px rgba(0,0,0,.5)}
+  input[type=color]{width:100%;height:44px;border:1px solid var(--line);border-radius:12px;
+    background:rgba(4,12,32,.62);cursor:pointer;padding:4px}
+
+  .swatches{display:flex;gap:8px;margin-top:9px;flex-wrap:wrap}
+  .sw{width:28px;height:28px;border-radius:9px;cursor:pointer;border:2px solid transparent;transition:.2s}
+  .sw:hover{transform:scale(1.14);border-color:#fff}
+
+  .btn{
+    width:100%;padding:13px;border:none;border-radius:13px;font-size:15px;font-weight:700;
+    font-family:inherit;cursor:pointer;transition:.22s;
+    background:linear-gradient(135deg,var(--blue-600),var(--blue-400) 60%,var(--cyan));
+    color:#fff;box-shadow:0 12px 26px -12px var(--blue-500);
+  }
+  .btn:hover{transform:translateY(-2px);box-shadow:0 18px 34px -12px var(--blue-400)}
+  .btn:active{transform:translateY(0)}
+  .btn.ghost{background:var(--glass);border:1px solid var(--line);color:var(--blue-200);box-shadow:none}
+  .btn.ghost:hover{color:#fff;border-color:var(--blue-400)}
+  .btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+
+  .stage{
+    display:flex;align-items:center;justify-content:center;padding:26px;border-radius:16px;
+    background:#fff;min-height:280px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06);
+  }
+  .stage.empty{background:rgba(4,12,32,.45);border:1px dashed var(--line);color:var(--muted);font-size:14px;text-align:center}
+  #qr canvas,#qr img{display:block;max-width:100%;height:auto;border-radius:6px}
+  .meta{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-top:14px}
+  .toast{
+    position:fixed;left:50%;bottom:26px;transform:translate(-50%,90px);
+    background:linear-gradient(135deg,var(--blue-600),var(--cyan));color:#fff;
+    padding:12px 22px;border-radius:999px;font-size:14px;font-weight:600;
+    box-shadow:0 14px 34px -12px #000;transition:.35s;z-index:99;
+  }
+  .toast.show{transform:translate(-50%,0)}
+  footer{text-align:center;margin-top:38px;color:var(--muted);font-size:13px}
+  footer a{color:var(--blue-300);text-decoration:none}
+  footer a:hover{text-decoration:underline}
+  @media(max-width:880px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="badge">🔷 QR Studio</div>
+    <h1>ระบบสร้าง QR Code</h1>
+    <p>สร้าง QR Code สำหรับลิงก์ · WiFi · นามบัตร · อีเมล — ดาวน์โหลดเป็น PNG ความละเอียดสูงได้ทันที</p>
+  </header>
+
+  <div class="grid">
+    <!-- ══ ฝั่งกรอกข้อมูล ══ -->
+    <div class="card">
+      <h2>ข้อมูลที่ต้องการเข้ารหัส</h2>
+      <div class="tabs" id="tabs">
+        <div class="tab active" data-pane="text">🔗 ข้อความ / URL</div>
+        <div class="tab" data-pane="wifi">📶 WiFi</div>
+        <div class="tab" data-pane="mail">✉️ อีเมล</div>
+        <div class="tab" data-pane="tel">📱 โทร / SMS</div>
+        <div class="tab" data-pane="card">👤 นามบัตร</div>
+      </div>
+
+      <div class="pane active" id="pane-text">
+        <div class="field">
+          <label>ข้อความหรือลิงก์</label>
+          <textarea id="t-text" placeholder="https://github.com/your-username">https://github.com</textarea>
+        </div>
+      </div>
+
+      <div class="pane" id="pane-wifi">
+        <div class="field"><label>ชื่อเครือข่าย (SSID)</label><input type="text" id="w-ssid" placeholder="MyWiFi"></div>
+        <div class="row">
+          <div class="field"><label>รหัสผ่าน</label><input type="password" id="w-pass" placeholder="••••••••"></div>
+          <div class="field"><label>ประเภทการเข้ารหัส</label>
+            <select id="w-enc"><option value="WPA">WPA/WPA2</option><option value="WEP">WEP</option><option value="nopass">ไม่มีรหัสผ่าน</option></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="pane" id="pane-mail">
+        <div class="field"><label>อีเมลผู้รับ</label><input type="email" id="m-to" placeholder="hello@example.com"></div>
+        <div class="field"><label>หัวข้อ</label><input type="text" id="m-sub" placeholder="สอบถามข้อมูล"></div>
+        <div class="field"><label>เนื้อหา</label><textarea id="m-body" placeholder="สวัสดีครับ..."></textarea></div>
+      </div>
+
+      <div class="pane" id="pane-tel">
+        <div class="field"><label>รูปแบบ</label>
+          <select id="p-mode"><option value="tel">โทรออก</option><option value="sms">ส่ง SMS</option></select>
+        </div>
+        <div class="field"><label>เบอร์โทรศัพท์</label><input type="tel" id="p-num" placeholder="+66812345678"></div>
+        <div class="field"><label>ข้อความ (เฉพาะ SMS)</label><textarea id="p-msg" placeholder="ข้อความ..."></textarea></div>
+      </div>
+
+      <div class="pane" id="pane-card">
+        <div class="row">
+          <div class="field"><label>ชื่อ-นามสกุล</label><input type="text" id="c-name" placeholder="สมชาย ใจดี"></div>
+          <div class="field"><label>ตำแหน่ง</label><input type="text" id="c-title" placeholder="Developer"></div>
+        </div>
+        <div class="row">
+          <div class="field"><label>องค์กร</label><input type="text" id="c-org" placeholder="ACME Co."></div>
+          <div class="field"><label>เบอร์โทร</label><input type="tel" id="c-tel" placeholder="+66812345678"></div>
+        </div>
+        <div class="row">
+          <div class="field"><label>อีเมล</label><input type="email" id="c-mail" placeholder="me@example.com"></div>
+          <div class="field"><label>เว็บไซต์</label><input type="text" id="c-web" placeholder="https://example.com"></div>
+        </div>
+      </div>
+
+      <hr style="border:none;border-top:1px solid var(--line);margin:20px 0">
+      <h2>ปรับแต่งรูปแบบ</h2>
+      <div class="row">
+        <div class="field">
+          <label>สีจุด QR</label>
+          <input type="color" id="fg" value="#1d4ed8">
+          <div class="swatches" id="swatches"></div>
+        </div>
+        <div class="field"><label>สีพื้นหลัง</label><input type="color" id="bg" value="#ffffff"></div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>ขนาด: <span id="sizeLabel">280</span> px</label>
+          <input type="range" id="size" min="160" max="420" step="20" value="280">
+        </div>
+        <div class="field"><label>ระดับแก้ไขข้อผิดพลาด</label>
+          <select id="ecl">
+            <option value="L">L — 7%</option>
+            <option value="M">M — 15%</option>
+            <option value="Q">Q — 25%</option>
+            <option value="H" selected>H — 30% (แนะนำ)</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn" id="gen">✨ สร้าง QR Code</button>
+    </div>
+
+    <!-- ══ ฝั่งแสดงผล ══ -->
+    <div class="card">
+      <h2>ตัวอย่าง QR Code</h2>
+      <div class="stage empty" id="stage"><div id="qr">กด “สร้าง QR Code”<br>เพื่อแสดงผลลัพธ์ที่นี่</div></div>
+      <div class="meta"><span id="metaType">ประเภท: ข้อความ / URL</span><span id="metaLen">0 อักขระ</span></div>
+      <div class="btns">
+        <button class="btn" id="dl">⬇️ ดาวน์โหลด PNG</button>
+        <button class="btn ghost" id="copy">📋 คัดลอกรูป</button>
+      </div>
+      <button class="btn ghost" id="reset" style="margin-top:10px">♻️ ล้างค่าทั้งหมด</button>
+    </div>
+  </div>
+
+  <footer>สร้างด้วย ❤️ · ทำงานฝั่ง Client 100% ข้อมูลไม่ถูกส่งออกนอกเครื่อง · <a href="https://github.com" target="_blank" rel="noopener">GitHub</a></footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const PALETTE = ['#1d4ed8','#0ea5e9','#0f172a','#22d3ee','#3b82f6','#000000'];
+let current = 'text', qr = null;
+
+/* ── สร้างชุดสีลัด ── */
+PALETTE.forEach(c => {
+  const s = document.createElement('div');
+  s.className = 'sw'; s.style.background = c; s.title = c;
+  s.onclick = () => { $('fg').value = c; render(); };
+  $('swatches').appendChild(s);
+});
+
+/* ── สลับแท็บ ── */
+$('tabs').addEventListener('click', e => {
+  const tab = e.target.closest('.tab'); if (!tab) return;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+  tab.classList.add('active');
+  current = tab.dataset.pane;
+  $('pane-' + current).classList.add('active');
+  $('metaType').textContent = 'ประเภท: ' + tab.textContent.trim();
+  render();
+});
+
+/* ── ประกอบสตริงตามประเภท ── */
+const esc = s => (s || '').replace(/([\\;,:"])/g, '\\$1');
+function buildData() {
+  switch (current) {
+    case 'wifi': {
+      const ssid = $('w-ssid').value.trim(); if (!ssid) return '';
+      const enc = $('w-enc').value;
+      return `WIFI:T:${enc};S:${esc(ssid)};${enc !== 'nopass' ? 'P:' + esc($('w-pass').value) + ';' : ''};`;
+    }
+    case 'mail': {
+      const to = $('m-to').value.trim(); if (!to) return '';
+      const q = [];
+      if ($('m-sub').value) q.push('subject=' + encodeURIComponent($('m-sub').value));
+      if ($('m-body').value) q.push('body=' + encodeURIComponent($('m-body').value));
+      return 'mailto:' + to + (q.length ? '?' + q.join('&') : '');
+    }
+    case 'tel': {
+      const n = $('p-num').value.replace(/\s/g, ''); if (!n) return '';
+      return $('p-mode').value === 'sms'
+        ? `SMSTO:${n}:${$('p-msg').value}` : 'tel:' + n;
+    }
+    case 'card': {
+      const name = $('c-name').value.trim(); if (!name) return '';
+      return ['BEGIN:VCARD','VERSION:3.0',`FN:${name}`,`N:${name};;;;`,
+        $('c-org').value && `ORG:${$('c-org').value}`,
+        $('c-title').value && `TITLE:${$('c-title').value}`,
+        $('c-tel').value && `TEL;TYPE=CELL:${$('c-tel').value}`,
+        $('c-mail').value && `EMAIL:${$('c-mail').value}`,
+        $('c-web').value && `URL:${$('c-web').value}`,
+        'END:VCARD'].filter(Boolean).join('\n');
+    }
+    default: return $('t-text').value.trim();
+  }
+}
+
+/* ── วาด QR ── */
+function draw(target, data, size) {
+  target.innerHTML = '';
+  return new QRCode(target, {
+    text: data, width: size, height: size,
+    colorDark: $('fg').value, colorLight: $('bg').value,
+    correctLevel: QRCode.CorrectLevel[$('ecl').value]
+  });
+}
+function render() {
+  const data = buildData(), stage = $('stage'), box = $('qr');
+  $('metaLen').textContent = data.length + ' อักขระ';
+  if (!data) {
+    stage.classList.add('empty');
+    box.innerHTML = 'กรอกข้อมูลให้ครบ<br>เพื่อสร้าง QR Code';
+    qr = null; return;
+  }
+  if (data.length > 2200) return toast('⚠️ ข้อมูลยาวเกินไป');
+  stage.classList.remove('empty');
+  stage.style.background = $('bg').value;
+  qr = draw(box, data, +$('size').value);
+}
+
+/* ── ดาวน์โหลด PNG ความละเอียดสูง 1024px ── */
+function hiResCanvas() {
+  const data = buildData(); if (!data) return null;
+  const tmp = document.createElement('div');
+  tmp.style.cssText = 'position:fixed;left:-9999px;top:0';
+  document.body.appendChild(tmp);
+  draw(tmp, data, 1024);
+  const c = tmp.querySelector('canvas');
+  const out = c ? c.toDataURL('image/png') : null;
+  document.body.removeChild(tmp);
+  return out;
+}
+$('dl').onclick = () => {
+  const url = hiResCanvas();
+  if (!url) return toast('⚠️ ยังไม่มี QR ให้ดาวน์โหลด');
+  const a = document.createElement('a');
+  a.href = url; a.download = `qrcode-${current}-${Date.now()}.png`; a.click();
+  toast('✅ ดาวน์โหลดสำเร็จ');
+};
+$('copy').onclick = async () => {
+  const url = hiResCanvas();
+  if (!url) return toast('⚠️ ยังไม่มี QR ให้คัดลอก');
+  try {
+    const blob = await (await fetch(url)).blob();
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+    toast('✅ คัดลอกรูปแล้ว');
+  } catch { toast('⚠️ เบราว์เซอร์นี้ไม่รองรับการคัดลอกรูป'); }
+};
+$('reset').onclick = () => {
+  document.querySelectorAll('input:not([type=color]):not([type=range]),textarea').forEach(i => i.value = '');
+  $('fg').value = '#1d4ed8'; $('bg').value = '#ffffff'; $('size').value = 280; $('sizeLabel').textContent = 280;
+  render(); toast('♻️ ล้างค่าเรียบร้อย');
+};
+
+/* ── Toast ── */
+let timer;
+function toast(msg) {
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(timer); timer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+/* ── Events ── */
+$('gen').onclick = () => { render(); toast('✨ สร้าง QR Code สำเร็จ'); };
+$('size').oninput = e => { $('sizeLabel').textContent = e.target.value; render(); };
+['fg','bg','ecl','w-enc','p-mode'].forEach(id => $(id).oninput = render);
+document.querySelectorAll('input:not([type=range]),textarea').forEach(el => {
+  el.addEventListener('input', () => { clearTimeout(el._t); el._t = setTimeout(render, 320); });
+});
+render();
+</script>
+</body>
+</html>
