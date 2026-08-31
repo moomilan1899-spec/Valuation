@@ -1,87 +1,370 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Executive Dashboard — รายงานการดำเนินการการประเมิน</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QR Studio — ระบบสร้าง QR Code</title>
+<meta name="description" content="ระบบสร้าง QR Code ออนไลน์ ฟรี รองรับ URL, WiFi, vCard และดาวน์โหลด PNG ความละเอียดสูง">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔷</text></svg>">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
-:root{--navy:#0b2f59;--navy2:#184d80;--gold:#caa64b;--bg:#f3f6fa;--card:#fff;--ink:#1a273a;--muted:#6c7889;--line:#dfe6ee;--green:#16885b;--amber:#c78b18;--orange:#dc7f27;--red:#c94949;--gray:#9ba7b6}
-*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font-family:Tahoma,"Noto Sans Thai",system-ui,sans-serif}
-header{background:linear-gradient(115deg,var(--navy),#123f70);color:#fff;border-bottom:4px solid var(--gold)} .head{max-width:1540px;margin:auto;padding:22px 26px;display:flex;justify-content:space-between;align-items:center;gap:20px}
-h1{margin:0 0 5px;font-size:25px} .sub{font-size:13px;color:#dbe8f6} .live{display:inline-flex;align-items:center;gap:8px;padding:9px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);font-size:12px;font-weight:700} .dot{width:8px;height:8px;border-radius:50%;background:#f1c75b} .live.ok .dot{background:#45d18a} .live.error .dot{background:#ff7777}
-main{max-width:1540px;margin:auto;padding:18px 22px 28px} .card{background:#fff;border:1px solid #e4eaf1;border-radius:14px;box-shadow:0 4px 14px rgba(20,45,72,.045)} .filters{padding:13px;display:flex;gap:10px;align-items:end;flex-wrap:wrap} .filter{display:grid;gap:5px;min-width:185px} .filter label{font-size:11px;color:var(--muted);font-weight:700} select,input{padding:10px 11px;border:1px solid var(--line);border-radius:9px;background:#fff;font-size:13px} button{padding:10px 13px;border:0;border-radius:9px;background:var(--navy);color:#fff;font-weight:700;cursor:pointer} button.alt{background:#fff;color:var(--navy);border:1px solid var(--line)}
-.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:13px} .kpi{padding:15px 16px;position:relative;overflow:hidden} .kpi:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--gold)} .kl{font-size:11px;color:var(--muted);font-weight:700} .kv{font-size:29px;color:var(--navy);font-weight:850;margin-top:5px} .km{font-size:11px;color:var(--muted);margin-top:2px}
-.hero{display:grid;grid-template-columns:1.35fr .65fr;gap:13px;margin-top:13px} .section{padding:16px} .title{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-bottom:12px} .title h2{margin:0;color:var(--navy);font-size:16px} .title small{color:var(--muted);font-size:11px}
-.mapbox{position:relative;height:655px;border-radius:12px;background:linear-gradient(#f8fbfe,#f0f5f9);border:1px solid var(--line);overflow:hidden} #thaiMap{width:100%;height:100%;display:block} .province{stroke:#fff;stroke-width:.04;vector-effect:non-scaling-stroke;cursor:pointer;transition:.15s} .province:hover{stroke:#0b2f59;stroke-width:.15;filter:brightness(1.06)} .loading{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted)} .legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:9px} .leg{display:flex;gap:6px;align-items:center;font-size:11px;color:var(--muted)} .sw{width:12px;height:12px;border-radius:3px}
-.side{display:grid;gap:12px} .panel{padding:15px} .mini-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px} .mini{background:#f7f9fc;border:1px solid var(--line);border-radius:10px;padding:11px} .mini b{display:block;font-size:23px;color:var(--navy)} .mini span{font-size:11px;color:var(--muted)} .list{display:grid;gap:7px} .row{display:grid;grid-template-columns:120px 1fr 58px;gap:8px;align-items:center;font-size:11px} .bar{height:9px;border-radius:99px;background:#edf1f5;overflow:hidden} .fill{height:100%;border-radius:99px}
-.charts{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-top:13px} .chart{padding:15px;min-height:305px} .donutwrap{height:225px;display:flex;align-items:center;justify-content:center;gap:26px;flex-wrap:wrap} .donut{width:170px;height:170px;border-radius:50%;display:grid;place-items:center;position:relative} .donut:after{content:"";position:absolute;width:116px;height:116px;border-radius:50%;background:#fff} .dc{z-index:1;text-align:center} .dc b{font-size:26px;color:var(--navy)} .dc span{display:block;font-size:10px;color:var(--muted)}
-.region-bars,.hist{height:225px;display:flex;align-items:flex-end;gap:7px;padding:15px 4px 28px;border-bottom:1px solid var(--line)} .rb,.hb{flex:1;text-align:center;position:relative} .col{border-radius:6px 6px 0 0;min-height:3px} .rb .col{background:linear-gradient(#3d78aa,var(--navy))} .hb .col{background:#6d91b5} .rb label,.hb label{position:absolute;bottom:-23px;left:50%;transform:translateX(-50%);font-size:8px;white-space:nowrap} .rb i,.hb i{font-style:normal;font-size:9px;font-weight:800}
-.rankgrid{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-top:13px} .rankcard{padding:15px} .ranklist{display:grid;gap:7px} .rankitem{display:grid;grid-template-columns:24px 125px 1fr 60px;gap:8px;align-items:center;font-size:11px} .num{width:22px;height:22px;border-radius:7px;background:#edf3f9;display:grid;place-items:center;font-weight:800;color:var(--navy)}
-.tablecard{margin-top:13px;padding:15px} .tablewrap{overflow:auto;max-height:520px;border:1px solid var(--line);border-radius:10px} table{width:100%;border-collapse:collapse;font-size:11px} th{position:sticky;top:0;background:var(--navy);color:#fff;padding:9px;z-index:2} td{padding:8px 9px;border-bottom:1px solid #edf1f5;text-align:right} td:nth-child(1),td:nth-child(2),td:nth-child(3){text-align:left} tr:hover td{background:#f7faff} .pill{display:inline-block;padding:4px 7px;border-radius:999px;font-size:10px;font-weight:800} .high{background:#e0f3ea;color:var(--green)} .mid{background:#fff2d9;color:#96630b} .low{background:#fde6e6;color:var(--red)} .zero{background:#edf0f4;color:#667180}
-.tip{position:fixed;display:none;z-index:9999;background:#102b4d;color:#fff;border-radius:9px;padding:10px 12px;font-size:11px;line-height:1.55;pointer-events:none;box-shadow:0 8px 22px rgba(0,0,0,.2)} .tip b{color:#f3d985;font-size:13px} footer{max-width:1540px;margin:auto;padding:0 22px 20px;text-align:right;font-size:10px;color:var(--muted)}
-@media(max-width:1120px){.kpis{grid-template-columns:repeat(3,1fr)}.hero{grid-template-columns:1fr}.charts{grid-template-columns:1fr 1fr}} @media(max-width:760px){.kpis{grid-template-columns:1fr 1fr}.charts,.rankgrid{grid-template-columns:1fr}.mapbox{height:540px}} @media(max-width:520px){.kpis{grid-template-columns:1fr}main{padding:12px}.filter{width:100%;min-width:100%}}
-</style></head>
+  :root{
+    --blue-900:#0a1633; --blue-800:#0f2154; --blue-700:#14307a;
+    --blue-600:#1d4ed8; --blue-500:#2563eb; --blue-400:#3b82f6;
+    --blue-300:#60a5fa; --blue-200:#93c5fd; --cyan:#22d3ee;
+    --txt:#e8efff; --muted:#9db3dd;
+    --glass:rgba(255,255,255,.06); --line:rgba(147,197,253,.22);
+    --radius:18px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:"Segoe UI",system-ui,-apple-system,"Noto Sans Thai",sans-serif;
+    min-height:100vh; color:var(--txt);
+    background:
+      radial-gradient(1000px 600px at 12% -10%, #1e40af55, transparent 60%),
+      radial-gradient(900px 600px at 90% 110%, #0891b244, transparent 60%),
+      linear-gradient(160deg, var(--blue-900), #071026 55%, var(--blue-800));
+    background-attachment:fixed;
+    padding:32px 16px 64px;
+  }
+  .wrap{max-width:1080px;margin:0 auto}
+  header{text-align:center;margin-bottom:34px}
+  .badge{
+    display:inline-block;padding:6px 16px;border-radius:999px;font-size:12.5px;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--blue-200);
+    background:var(--glass);border:1px solid var(--line);margin-bottom:14px;
+  }
+  h1{
+    font-size:clamp(30px,5.2vw,46px);font-weight:800;line-height:1.2;
+    background:linear-gradient(100deg,#fff,var(--blue-300) 45%,var(--cyan));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  header p{color:var(--muted);margin-top:10px;font-size:15px}
+
+  .grid{display:grid;grid-template-columns:1.15fr .85fr;gap:24px;align-items:start}
+  .card{
+    background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.03));
+    border:1px solid var(--line);border-radius:var(--radius);
+    padding:26px;backdrop-filter:blur(14px);
+    box-shadow:0 22px 50px -22px rgba(0,0,0,.75);
+  }
+  .card h2{font-size:16px;margin-bottom:18px;display:flex;align-items:center;gap:9px}
+  .card h2::before{content:"";width:4px;height:18px;border-radius:4px;background:linear-gradient(var(--blue-300),var(--cyan))}
+
+  .tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+  .tab{
+    padding:8px 15px;border-radius:11px;font-size:13.5px;cursor:pointer;
+    background:var(--glass);border:1px solid var(--line);color:var(--muted);
+    transition:.22s;user-select:none;
+  }
+  .tab:hover{color:#fff;border-color:var(--blue-400)}
+  .tab.active{
+    background:linear-gradient(135deg,var(--blue-600),var(--blue-400));
+    color:#fff;border-color:transparent;box-shadow:0 8px 20px -8px var(--blue-500);
+  }
+
+  .field{margin-bottom:15px}
+  label{display:block;font-size:13px;color:var(--blue-200);margin-bottom:7px;font-weight:600}
+  input[type=text],input[type=password],input[type=email],input[type=tel],textarea,select{
+    width:100%;padding:12px 14px;border-radius:12px;font-size:14.5px;font-family:inherit;
+    background:rgba(4,12,32,.62);border:1px solid var(--line);color:var(--txt);
+    outline:none;transition:.22s;
+  }
+  input:focus,textarea:focus,select:focus{
+    border-color:var(--blue-400);box-shadow:0 0 0 4px rgba(59,130,246,.16);background:rgba(4,12,32,.85);
+  }
+  textarea{resize:vertical;min-height:104px}
+  select option{background:#0b1a3d}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .pane{display:none;animation:fade .3s ease}
+  .pane.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  input[type=range]{width:100%;height:6px;border-radius:6px;appearance:none;
+    background:linear-gradient(90deg,var(--blue-400),var(--cyan));cursor:pointer}
+  input[type=range]::-webkit-slider-thumb{appearance:none;width:19px;height:19px;border-radius:50%;
+    background:#fff;border:3px solid var(--blue-500);box-shadow:0 3px 10px rgba(0,0,0,.5)}
+  input[type=color]{width:100%;height:44px;border:1px solid var(--line);border-radius:12px;
+    background:rgba(4,12,32,.62);cursor:pointer;padding:4px}
+
+  .swatches{display:flex;gap:8px;margin-top:9px;flex-wrap:wrap}
+  .sw{width:28px;height:28px;border-radius:9px;cursor:pointer;border:2px solid transparent;transition:.2s}
+  .sw:hover{transform:scale(1.14);border-color:#fff}
+
+  .btn{
+    width:100%;padding:13px;border:none;border-radius:13px;font-size:15px;font-weight:700;
+    font-family:inherit;cursor:pointer;transition:.22s;
+    background:linear-gradient(135deg,var(--blue-600),var(--blue-400) 60%,var(--cyan));
+    color:#fff;box-shadow:0 12px 26px -12px var(--blue-500);
+  }
+  .btn:hover{transform:translateY(-2px);box-shadow:0 18px 34px -12px var(--blue-400)}
+  .btn:active{transform:translateY(0)}
+  .btn.ghost{background:var(--glass);border:1px solid var(--line);color:var(--blue-200);box-shadow:none}
+  .btn.ghost:hover{color:#fff;border-color:var(--blue-400)}
+  .btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+
+  .stage{
+    display:flex;align-items:center;justify-content:center;padding:26px;border-radius:16px;
+    background:#fff;min-height:280px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06);
+  }
+  .stage.empty{background:rgba(4,12,32,.45);border:1px dashed var(--line);color:var(--muted);font-size:14px;text-align:center}
+  #qr canvas,#qr img{display:block;max-width:100%;height:auto;border-radius:6px}
+  .meta{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-top:14px}
+  .toast{
+    position:fixed;left:50%;bottom:26px;transform:translate(-50%,90px);
+    background:linear-gradient(135deg,var(--blue-600),var(--cyan));color:#fff;
+    padding:12px 22px;border-radius:999px;font-size:14px;font-weight:600;
+    box-shadow:0 14px 34px -12px #000;transition:.35s;z-index:99;
+  }
+  .toast.show{transform:translate(-50%,0)}
+  footer{text-align:center;margin-top:38px;color:var(--muted);font-size:13px}
+  footer a{color:var(--blue-300);text-decoration:none}
+  footer a:hover{text-decoration:underline}
+  @media(max-width:880px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
 <body>
-<header><div class="head"><div><h1>Executive Dashboard — รายงานการดำเนินการการประเมิน</h1><div class="sub">ความก้าวหน้าการตรวจสอบ/ปรับปรุงข้อมูล การจัดกลุ่มราคาตลาด และการคำนวณราคาประเมินรายแปลง · 77 จังหวัด</div></div><div class="live" id="live"><span class="dot"></span><span id="liveText">กำลังเชื่อมต่อ Google Sheets...</span></div></div></header>
-<main>
-<section class="card filters">
-<div class="filter"><label>ภูมิภาค</label><select id="region"><option value="ALL">ทั้งหมด</option></select></div>
-<div class="filter"><label>สถานะ</label><select id="status"><option value="ALL">ทั้งหมด</option><option value="HIGH">สูง ≥95%</option><option value="MID">เฝ้าระวัง 80–94.9%</option><option value="LOW">เร่งรัด 1–79.9%</option><option value="ZERO">ยังไม่เริ่ม 0%</option></select></div>
-<div class="filter"><label>ค้นจังหวัด</label><input id="search" placeholder="พิมพ์ชื่อจังหวัด"></div>
-<button class="alt" id="reset">รีเซ็ตตัวกรอง</button><button class="alt" onclick="loadLiveData()">รีเฟรชข้อมูล</button>
-</section>
+<div class="wrap">
+  <header>
+    <div class="badge">🔷 QR Studio</div>
+    <h1>ระบบสร้าง QR Code</h1>
+    <p>สร้าง QR Code สำหรับลิงก์ · WiFi · นามบัตร · อีเมล — ดาวน์โหลดเป็น PNG ความละเอียดสูงได้ทันที</p>
+  </header>
 
-<section class="kpis">
-<div class="card kpi"><div class="kl">จังหวัดที่แสดง</div><div class="kv" id="kProv">—</div><div class="km">จังหวัด</div></div>
-<div class="card kpi"><div class="kl">แปลงที่ดินทั้งหมด</div><div class="kv" id="kTotal">—</div><div class="km">แปลง</div></div>
-<div class="card kpi"><div class="kl">คำนวณราคาผ่านระบบแล้ว</div><div class="kv" id="kCalc">—</div><div class="km">แปลง</div></div>
-<div class="card kpi"><div class="kl">จัดกลุ่มราคาตลาด</div><div class="kv" id="kMarket">—</div><div class="km" id="kMarketMeta">หน่วย</div></div>
-<div class="card kpi"><div class="kl">ร้อยละดำเนินการรวม</div><div class="kv" id="kPct">—</div><div class="km">ถ่วงน้ำหนักตามจำนวนแปลง</div></div>
-</section>
+  <div class="grid">
+    <!-- ══ ฝั่งกรอกข้อมูล ══ -->
+    <div class="card">
+      <h2>ข้อมูลที่ต้องการเข้ารหัส</h2>
+      <div class="tabs" id="tabs">
+        <div class="tab active" data-pane="text">🔗 ข้อความ / URL</div>
+        <div class="tab" data-pane="wifi">📶 WiFi</div>
+        <div class="tab" data-pane="mail">✉️ อีเมล</div>
+        <div class="tab" data-pane="tel">📱 โทร / SMS</div>
+        <div class="tab" data-pane="card">👤 นามบัตร</div>
+      </div>
 
-<section class="hero">
-<div class="card section"><div class="title"><h2>แผนที่ความก้าวหน้ารายจังหวัด</h2><small>สีเทา = ถูกกรองออก · ชี้จังหวัดเพื่อดูรายละเอียด</small></div><div class="mapbox"><svg id="thaiMap" viewBox="0 0 500 900"></svg><div class="loading" id="loading">กำลังโหลดขอบเขตจังหวัด...</div></div><div class="legend"><div class="leg"><span class="sw" style="background:#16885b"></span>≥95%</div><div class="leg"><span class="sw" style="background:#c78b18"></span>80–94.9%</div><div class="leg"><span class="sw" style="background:#dc7f27"></span>50–79.9%</div><div class="leg"><span class="sw" style="background:#c94949"></span>1–49.9%</div><div class="leg"><span class="sw" style="background:#9ba7b6"></span>0%</div></div></div>
-<div class="side">
-<div class="card panel"><div class="title"><h2>สถานะพื้นที่</h2><small>ตามตัวกรอง</small></div><div class="mini-grid"><div class="mini"><b id="sHigh">—</b><span>ดำเนินการดี ≥95%</span></div><div class="mini"><b id="sMid">—</b><span>เฝ้าระวัง 80–94.9%</span></div><div class="mini"><b id="sLow">—</b><span>เร่งรัด 1–79.9%</span></div><div class="mini"><b id="sZero">—</b><span>ยังไม่เริ่ม 0%</span></div></div></div>
-<div class="card panel"><div class="title"><h2>พื้นที่ที่ต้องเร่งรัด</h2><small>ต่ำสุดก่อน</small></div><div class="list" id="urgent"></div></div>
-</div></section>
+      <div class="pane active" id="pane-text">
+        <div class="field">
+          <label>ข้อความหรือลิงก์</label>
+          <textarea id="t-text" placeholder="https://github.com/your-username">https://github.com</textarea>
+        </div>
+      </div>
 
-<section class="charts">
-<div class="card chart"><div class="title"><h2>ภาพรวม: สัดส่วนการคำนวณราคา</h2><small>ดำเนินการแล้ว vs คงเหลือ</small></div><div class="donutwrap"><div class="donut" id="donut"><div class="dc"><b id="donutPct">—</b><span>ดำเนินการแล้ว</span></div></div><div><div class="kl">ดำเนินการแล้ว</div><div style="font-size:21px;font-weight:850;color:var(--green)" id="doneN">—</div><div class="kl" style="margin-top:10px">คงเหลือ</div><div style="font-size:21px;font-weight:850;color:var(--red)" id="remainN">—</div></div></div></div>
-<div class="card chart"><div class="title"><h2>ความก้าวหน้าตามภูมิภาค</h2><small>ถ่วงน้ำหนักตามจำนวนแปลง</small></div><div class="region-bars" id="regionBars"></div></div>
-<div class="card chart"><div class="title"><h2>การกระจายของความก้าวหน้า</h2><small>จำนวนจังหวัด แบ่งช่วงละ 10%</small></div><div class="hist" id="hist"></div></div>
-</section>
+      <div class="pane" id="pane-wifi">
+        <div class="field"><label>ชื่อเครือข่าย (SSID)</label><input type="text" id="w-ssid" placeholder="MyWiFi"></div>
+        <div class="row">
+          <div class="field"><label>รหัสผ่าน</label><input type="password" id="w-pass" placeholder="••••••••"></div>
+          <div class="field"><label>ประเภทการเข้ารหัส</label>
+            <select id="w-enc"><option value="WPA">WPA/WPA2</option><option value="WEP">WEP</option><option value="nopass">ไม่มีรหัสผ่าน</option></select>
+          </div>
+        </div>
+      </div>
 
-<section class="rankgrid">
-<div class="card rankcard"><div class="title"><h2>10 อันดับจังหวัดที่ทำได้ดีที่สุด</h2><small>% คำนวณราคาผ่านระบบ</small></div><div class="ranklist" id="top10"></div></div>
-<div class="card rankcard"><div class="title"><h2>10 จังหวัดที่ต้องเร่งรัด</h2><small>เรียงจากต่ำสุด</small></div><div class="ranklist" id="bottom10"></div></div>
-</section>
+      <div class="pane" id="pane-mail">
+        <div class="field"><label>อีเมลผู้รับ</label><input type="email" id="m-to" placeholder="hello@example.com"></div>
+        <div class="field"><label>หัวข้อ</label><input type="text" id="m-sub" placeholder="สอบถามข้อมูล"></div>
+        <div class="field"><label>เนื้อหา</label><textarea id="m-body" placeholder="สวัสดีครับ..."></textarea></div>
+      </div>
 
-<section class="card tablecard"><div class="title"><h2>ตารางรายละเอียดจังหวัด</h2><small id="tableCount"></small></div><div class="tablewrap"><table><thead><tr><th>ลำดับ</th><th>จังหวัด</th><th>ภูมิภาค</th><th>เป้าหมายข้อมูล</th><th>ตรวจสอบ %</th><th>ปรับปรุง %</th><th>หน่วยที่ดิน</th><th>จัดกลุ่มตลาด %</th><th>แปลงทั้งหมด</th><th>คำนวณแล้ว</th><th>% คำนวณ</th><th>สถานะ</th></tr></thead><tbody id="tbody"></tbody></table></div></section>
-</main>
-<footer>แหล่งข้อมูล: Google Sheets · รีเฟรชหน้าเมื่อมีการอัปเดตข้อมูล</footer>
-<div class="tip" id="tip"></div>
+      <div class="pane" id="pane-tel">
+        <div class="field"><label>รูปแบบ</label>
+          <select id="p-mode"><option value="tel">โทรออก</option><option value="sms">ส่ง SMS</option></select>
+        </div>
+        <div class="field"><label>เบอร์โทรศัพท์</label><input type="tel" id="p-num" placeholder="+66812345678"></div>
+        <div class="field"><label>ข้อความ (เฉพาะ SMS)</label><textarea id="p-msg" placeholder="ข้อความ..."></textarea></div>
+      </div>
+
+      <div class="pane" id="pane-card">
+        <div class="row">
+          <div class="field"><label>ชื่อ-นามสกุล</label><input type="text" id="c-name" placeholder="สมชาย ใจดี"></div>
+          <div class="field"><label>ตำแหน่ง</label><input type="text" id="c-title" placeholder="Developer"></div>
+        </div>
+        <div class="row">
+          <div class="field"><label>องค์กร</label><input type="text" id="c-org" placeholder="ACME Co."></div>
+          <div class="field"><label>เบอร์โทร</label><input type="tel" id="c-tel" placeholder="+66812345678"></div>
+        </div>
+        <div class="row">
+          <div class="field"><label>อีเมล</label><input type="email" id="c-mail" placeholder="me@example.com"></div>
+          <div class="field"><label>เว็บไซต์</label><input type="text" id="c-web" placeholder="https://example.com"></div>
+        </div>
+      </div>
+
+      <hr style="border:none;border-top:1px solid var(--line);margin:20px 0">
+      <h2>ปรับแต่งรูปแบบ</h2>
+      <div class="row">
+        <div class="field">
+          <label>สีจุด QR</label>
+          <input type="color" id="fg" value="#1d4ed8">
+          <div class="swatches" id="swatches"></div>
+        </div>
+        <div class="field"><label>สีพื้นหลัง</label><input type="color" id="bg" value="#ffffff"></div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>ขนาด: <span id="sizeLabel">280</span> px</label>
+          <input type="range" id="size" min="160" max="420" step="20" value="280">
+        </div>
+        <div class="field"><label>ระดับแก้ไขข้อผิดพลาด</label>
+          <select id="ecl">
+            <option value="L">L — 7%</option>
+            <option value="M">M — 15%</option>
+            <option value="Q">Q — 25%</option>
+            <option value="H" selected>H — 30% (แนะนำ)</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn" id="gen">✨ สร้าง QR Code</button>
+    </div>
+
+    <!-- ══ ฝั่งแสดงผล ══ -->
+    <div class="card">
+      <h2>ตัวอย่าง QR Code</h2>
+      <div class="stage empty" id="stage"><div id="qr">กด “สร้าง QR Code”<br>เพื่อแสดงผลลัพธ์ที่นี่</div></div>
+      <div class="meta"><span id="metaType">ประเภท: ข้อความ / URL</span><span id="metaLen">0 อักขระ</span></div>
+      <div class="btns">
+        <button class="btn" id="dl">⬇️ ดาวน์โหลด PNG</button>
+        <button class="btn ghost" id="copy">📋 คัดลอกรูป</button>
+      </div>
+      <button class="btn ghost" id="reset" style="margin-top:10px">♻️ ล้างค่าทั้งหมด</button>
+    </div>
+  </div>
+
+  <footer>สร้างด้วย ❤️ · ทำงานฝั่ง Client 100% ข้อมูลไม่ถูกส่งออกนอกเครื่อง · <a href="https://github.com" target="_blank" rel="noopener">GitHub</a></footer>
+</div>
+<div class="toast" id="toast"></div>
+
 <script>
-let DATA=[{"no": 1, "province": "กรุงเทพมหานคร", "target": 21745, "checked": 21745, "checkedPct": 100.0, "fixed": 21745, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 28720, "groupedUnits": 1683, "marketPct": 5.860027855153203, "marketEvalPct": 100.0, "totalParcels": 2286826, "calcParcels": 2044371, "parcelPct": 89.39775041913988}, {"no": 2, "province": "กระบี่", "target": 4259, "checked": 4259, "checkedPct": 100.0, "fixed": 4259, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 1578, "groupedUnits": 497, "marketPct": 31.49556400506971, "marketEvalPct": 100.0, "totalParcels": 261215, "calcParcels": 269968, "parcelPct": 103.35087954367093}, {"no": 3, "province": "กาญจนบุรี", "target": 10915, "checked": 10915, "checkedPct": 100.0, "fixed": 10915, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 1822, "groupedUnits": 357, "marketPct": 19.59385290889133, "marketEvalPct": 100.0, "totalParcels": 340591, "calcParcels": 341780, "parcelPct": 100.34909906603522}, {"no": 4, "province": "กาฬสินธุ์", "target": 10818, "checked": 10818, "checkedPct": 100.0, "fixed": 10818, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 1995, "groupedUnits": 469, "marketPct": 23.50877192982456, "marketEvalPct": 100.0, "totalParcels": 523249, "calcParcels": 524076, "parcelPct": 100.15805094706344}, {"no": 5, "province": "กำแพงเพชร", "target": 19813, "checked": 19813, "checkedPct": 100.0, "fixed": 19813, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 5271, "groupedUnits": 623, "marketPct": 11.819389110225764, "marketEvalPct": 100.0, "totalParcels": 221831, "calcParcels": 182622, "parcelPct": 82.32483286826458}, {"no": 6, "province": "ขอนแก่น", "target": 10980, "checked": 10980, "checkedPct": 100.0, "fixed": 10980, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 14200, "groupedUnits": 2408, "marketPct": 16.95774647887324, "marketEvalPct": 100.0, "totalParcels": 1160000, "calcParcels": 1180591, "parcelPct": 101.77508620689655}, {"no": 7, "province": "จันทบุรี", "target": 22355, "checked": 22355, "checkedPct": 100.0, "fixed": 22355, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 4977, "groupedUnits": 595, "marketPct": 11.954992967651195, "marketEvalPct": 100.0, "totalParcels": 283900, "calcParcels": 291082, "parcelPct": 102.52976400140894}, {"no": 8, "province": "ฉะเชิงเทรา", "target": 1030, "checked": 1030, "checkedPct": 100.0, "fixed": 1030, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 16944, "groupedUnits": 2260, "marketPct": 13.338054768649672, "marketEvalPct": 100.0, "totalParcels": 400920, "calcParcels": 410669, "parcelPct": 102.43165718846652}, {"no": 9, "province": "ชลบุรี", "target": 53545, "checked": 53545, "checkedPct": 100.0, "fixed": 53545, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 31096, "groupedUnits": 3041, "marketPct": 9.779392847954721, "marketEvalPct": 100.0, "totalParcels": 956943, "calcParcels": 956945, "parcelPct": 100.00020899886408}, {"no": 10, "province": "ชัยนาท", "target": 6291, "checked": 6291, "checkedPct": 100.0, "fixed": 6291, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 711, "groupedUnits": 256, "marketPct": 36.0056258790436, "marketEvalPct": 100.0, "totalParcels": 253000, "calcParcels": 253000, "parcelPct": 100.0}, {"no": 11, "province": "ชัยภูมิ", "target": 3609, "checked": 3609, "checkedPct": 100.0, "fixed": 3609, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 3918, "groupedUnits": 659, "marketPct": 16.81980602348137, "marketEvalPct": 100.0, "totalParcels": 630000, "calcParcels": 635500, "parcelPct": 100.87301587301587}, {"no": 12, "province": "ชุมพร", "target": 28741, "checked": 28741, "checkedPct": 100.0, "fixed": 28741, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 4852, "groupedUnits": 403, "marketPct": 8.305853256389117, "marketEvalPct": 100.0, "totalParcels": 272224, "calcParcels": 286692, "parcelPct": 105.31474080169272}, {"no": 13, "province": "เชียงราย", "target": 6110, "checked": 6110, "checkedPct": 100.0, "fixed": 6110, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 3153, "groupedUnits": 1235, "marketPct": 39.16904535363146, "marketEvalPct": 100.0, "totalParcels": 691700, "calcParcels": 729999, "parcelPct": 105.53693797889258}, {"no": 14, "province": "เชียงใหม่", "target": 24584, "checked": 24584, "checkedPct": 100.0, "fixed": 24584, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 3500, "groupedUnits": 834, "marketPct": 23.82857142857143, "marketEvalPct": 100.0, "totalParcels": 1067699, "calcParcels": 1078110, "parcelPct": 100.97508754808237}, {"no": 15, "province": "ตรัง", "target": 9686, "checked": 9686, "checkedPct": 100.0, "fixed": 9686, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 1687, "groupedUnits": 519, "marketPct": 30.76467101363367, "marketEvalPct": 100.0, "totalParcels": 355110, "calcParcels": 359945, "parcelPct": 101.3615499422714}, {"no": 16, "province": "ตราด", "target": 1464, "checked": 1464, "checkedPct": 100.0, "fixed": 1464, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 2967, "groupedUnits": 261, "marketPct": 8.796764408493427, "marketEvalPct": 100.0, "totalParcels": 108908, "calcParcels": 110992, "parcelPct": 101.91354170492527}, {"no": 17, "province": "ตาก", "target": 11155, "checked": 11155, "checkedPct": 100.0, "fixed": 11155, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 5833, "groupedUnits": 376, "marketPct": 6.44608263329333, "marketEvalPct": 100.0, "totalParcels": 225102, "calcParcels": 232358, "parcelPct": 103.22342760170943}, {"no": 18, "province": "นครนายก", "target": 2156, "checked": 2156, "checkedPct": 100.0, "fixed": 2156, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 8095, "groupedUnits": 703, "marketPct": 8.684373069796171, "marketEvalPct": 100.0, "totalParcels": 221434, "calcParcels": 221434, "parcelPct": 100.0}, {"no": 19, "province": "นครปฐม", "target": 7312, "checked": 7312, "checkedPct": 100.0, "fixed": 7312, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 5100, "groupedUnits": 818, "marketPct": 16.03921568627451, "marketEvalPct": 100.0, "totalParcels": 543958, "calcParcels": 555791, "parcelPct": 102.17535177348252}, {"no": 20, "province": "นครพนม", "target": 7274, "checked": 7274, "checkedPct": 100.0, "fixed": 7274, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 1609, "groupedUnits": 527, "marketPct": 32.753262896208824, "marketEvalPct": 100.0, "totalParcels": 460350, "calcParcels": 477299, "parcelPct": 103.68176387531227}, {"no": 21, "province": "นครราชสีมา", "target": 16931, "checked": 16931, "checkedPct": 100.0, "fixed": 16931, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 14230, "groupedUnits": 2363, "marketPct": 16.605762473647225, "marketEvalPct": 100.0, "totalParcels": 1600000, "calcParcels": 1629612, "parcelPct": 101.85074999999999}, {"no": 22, "province": "นครศรีธรรมราช", "target": 7089, "checked": 7089, "checkedPct": 100.0, "fixed": 7089, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 9503, "groupedUnits": 1177, "marketPct": 12.385562453961906, "marketEvalPct": 100.0, "totalParcels": 977830, "calcParcels": 989278, "parcelPct": 101.17075565282309}, {"no": 23, "province": "นครสวรรค์", "target": 18491, "checked": 18491, "checkedPct": 100.0, "fixed": 18491, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 4307, "groupedUnits": 797, "marketPct": 18.504759693522175, "marketEvalPct": 100.0, "totalParcels": 585585, "calcParcels": 595229, "parcelPct": 101.64690010843857}, {"no": 24, "province": "นนทบุรี", "target": 21386, "checked": 21386, "checkedPct": 100.0, "fixed": 21386, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 7027, "groupedUnits": 434, "marketPct": 6.176177600683079, "marketEvalPct": 100.0, "totalParcels": 684917, "calcParcels": 688978, "parcelPct": 100.59291855801507}, {"no": 25, "province": "นราธิวาส", "target": 8784, "checked": 8784, "checkedPct": 100.0, "fixed": 8784, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 1838, "groupedUnits": 361, "marketPct": 19.640914036996733, "marketEvalPct": 100.0, "totalParcels": 458250, "calcParcels": 438147, "parcelPct": 95.61309328968903}, {"no": 26, "province": "น่าน", "target": 5403, "checked": 5403, "checkedPct": 100.0, "fixed": 5403, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 6099, "groupedUnits": 599, "marketPct": 9.821282177406133, "marketEvalPct": 100.0, "totalParcels": 308461, "calcParcels": 313510, "parcelPct": 101.63683577502505}, {"no": 27, "province": "บึงกาฬ", "target": 2, "checked": 2, "checkedPct": 100.0, "fixed": 2, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 1277, "groupedUnits": 451, "marketPct": 35.317149569303055, "marketEvalPct": 100.0, "totalParcels": 128312, "calcParcels": 134904, "parcelPct": 105.13747739884032}, {"no": 28, "province": "บุรีรัมย์", "target": 1844, "checked": 1844, "checkedPct": 100.0, "fixed": 1844, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 5116, "groupedUnits": 1105, "marketPct": 21.59890539483972, "marketEvalPct": 100.0, "totalParcels": 821264, "calcParcels": 824365, "parcelPct": 100.37758869255198}, {"no": 29, "province": "ปทุมธานี", "target": 19408, "checked": 19408, "checkedPct": 100.0, "fixed": 19408, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 13508, "groupedUnits": 1259, "marketPct": 9.320402724311519, "marketEvalPct": 100.0, "totalParcels": 780000, "calcParcels": 780000, "parcelPct": 100.0}, {"no": 30, "province": "ประจวบคีรีขันธ์", "target": 17359, "checked": 17359, "checkedPct": 100.0, "fixed": 17359, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 2558, "groupedUnits": 170, "marketPct": 6.645817044566067, "marketEvalPct": 100.0, "totalParcels": 372630, "calcParcels": 372630, "parcelPct": 100.0}, {"no": 31, "province": "ปราจีนบุรี", "target": 8082, "checked": 8082, "checkedPct": 100.0, "fixed": 8082, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 1305, "groupedUnits": 489, "marketPct": 37.47126436781609, "marketEvalPct": 100.0, "totalParcels": 305500, "calcParcels": 323844, "parcelPct": 106.00458265139116}, {"no": 32, "province": "ปัตตานี", "target": 9569, "checked": 9569, "checkedPct": 100.0, "fixed": 9569, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 1464, "groupedUnits": 395, "marketPct": 26.98087431693989, "marketEvalPct": 100.0, "totalParcels": 497345, "calcParcels": 519379, "parcelPct": 104.43032502588747}, {"no": 33, "province": "พระนครศรีอยุธยา", "target": 8732, "checked": 8732, "checkedPct": 100.0, "fixed": 8732, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 9760, "groupedUnits": 945, "marketPct": 9.682377049180328, "marketEvalPct": 100.0, "totalParcels": 463950, "calcParcels": 465094, "parcelPct": 100.24657829507491}, {"no": 34, "province": "พะเยา", "target": 8352, "checked": 8352, "checkedPct": 100.0, "fixed": 8352, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 1277, "groupedUnits": 573, "marketPct": 44.87079091620987, "marketEvalPct": 100.0, "totalParcels": 382000, "calcParcels": 382000, "parcelPct": 100.0}, {"no": 35, "province": "พังงา", "target": 3526, "checked": 3526, "checkedPct": 100.0, "fixed": 3526, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 1896, "groupedUnits": 411, "marketPct": 21.677215189873415, "marketEvalPct": 100.0, "totalParcels": 143352, "calcParcels": 143852, "parcelPct": 100.34879178525587}, {"no": 36, "province": "พัทลุง", "target": 3705, "checked": 3705, "checkedPct": 100.0, "fixed": 3705, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 11340, "groupedUnits": 884, "marketPct": 7.79541446208113, "marketEvalPct": 100.0, "totalParcels": 422590, "calcParcels": 427872, "parcelPct": 101.24991126150643}, {"no": 37, "province": "พิจิตร", "target": 7683, "checked": 7683, "checkedPct": 100.0, "fixed": 7683, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 1956, "groupedUnits": 542, "marketPct": 27.709611451942738, "marketEvalPct": 100.0, "totalParcels": 283523, "calcParcels": 284152, "parcelPct": 100.22185149000258}, {"no": 38, "province": "พิษณุโลก", "target": 14073, "checked": 14073, "checkedPct": 100.0, "fixed": 14073, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 7358, "groupedUnits": 1054, "marketPct": 14.324544713237291, "marketEvalPct": 100.0, "totalParcels": 556540, "calcParcels": 556540, "parcelPct": 100.0}, {"no": 39, "province": "เพชรบุรี", "target": 11748, "checked": 11748, "checkedPct": 100.0, "fixed": 11748, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 3798, "groupedUnits": 978, "marketPct": 25.75039494470774, "marketEvalPct": 100.0, "totalParcels": 332990, "calcParcels": 334993, "parcelPct": 100.6015195651521}, {"no": 40, "province": "เพชรบูรณ์", "target": 5362, "checked": 5362, "checkedPct": 100.0, "fixed": 5362, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 4946, "groupedUnits": 705, "marketPct": 14.253942579862516, "marketEvalPct": 100.0, "totalParcels": 515400, "calcParcels": 531180, "parcelPct": 103.0616996507567}, {"no": 41, "province": "แพร่", "target": 991, "checked": 991, "checkedPct": 100.0, "fixed": 991, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 1845, "groupedUnits": 371, "marketPct": 20.10840108401084, "marketEvalPct": 100.0, "totalParcels": 342000, "calcParcels": 349336, "parcelPct": 102.14502923976607}, {"no": 42, "province": "ภูเก็ต", "target": 20298, "checked": 20298, "checkedPct": 100.0, "fixed": 20298, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 4265, "groupedUnits": 302, "marketPct": 7.080890973036342, "marketEvalPct": 100.0, "totalParcels": 208291, "calcParcels": 208289, "parcelPct": 99.99903980488835}, {"no": 43, "province": "มหาสารคาม", "target": 16687, "checked": 16687, "checkedPct": 100.0, "fixed": 16687, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 3567, "groupedUnits": 1180, "marketPct": 33.08102046537707, "marketEvalPct": 100.0, "totalParcels": 733995, "calcParcels": 734859, "parcelPct": 100.1177119735148}, {"no": 44, "province": "มุกดาหาร", "target": 2594, "checked": 2594, "checkedPct": 100.0, "fixed": 2594, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 633, "groupedUnits": 193, "marketPct": 30.48973143759874, "marketEvalPct": 100.0, "totalParcels": 189891, "calcParcels": 192761, "parcelPct": 101.51139337830651}, {"no": 45, "province": "แม่ฮ่องสอน", "target": 8576, "checked": 8576, "checkedPct": 100.0, "fixed": 8576, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 1548, "groupedUnits": 92, "marketPct": 5.943152454780361, "marketEvalPct": 100.0, "totalParcels": 42118, "calcParcels": 42780, "parcelPct": 101.57177453820219}, {"no": 46, "province": "ยโสธร", "target": 8405, "checked": 8405, "checkedPct": 100.0, "fixed": 8405, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 2390, "groupedUnits": 416, "marketPct": 17.405857740585773, "marketEvalPct": 100.0, "totalParcels": 398347, "calcParcels": 415579, "parcelPct": 104.32587668540243}, {"no": 47, "province": "ยะลา", "target": 6196, "checked": 6196, "checkedPct": 100.0, "fixed": 6196, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 865, "groupedUnits": 342, "marketPct": 39.53757225433526, "marketEvalPct": 100.0, "totalParcels": 284020, "calcParcels": 288000, "parcelPct": 101.40130976691782}, {"no": 48, "province": "ร้อยเอ็ด", "target": 22803, "checked": 22803, "checkedPct": 100.0, "fixed": 22803, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 5053, "groupedUnits": 1377, "marketPct": 27.2511379378587, "marketEvalPct": 100.0, "totalParcels": 910600, "calcParcels": 922570, "parcelPct": 101.31451790028552}, {"no": 49, "province": "ระนอง", "target": 2432, "checked": 2432, "checkedPct": 100.0, "fixed": 2432, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 1562, "groupedUnits": 191, "marketPct": 12.227912932138283, "marketEvalPct": 100.0, "totalParcels": 55449, "calcParcels": 56460, "parcelPct": 101.82329708380675}, {"no": 50, "province": "ระยอง", "target": 3797, "checked": 3797, "checkedPct": 100.0, "fixed": 3797, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 10471, "groupedUnits": 559, "marketPct": 5.338554101804985, "marketEvalPct": 100.0, "totalParcels": 521000, "calcParcels": 20000, "parcelPct": 3.8387715930902107}, {"no": 51, "province": "ราชบุรี", "target": 44728, "checked": 44728, "checkedPct": 100.0, "fixed": 44728, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 3119, "groupedUnits": 496, "marketPct": 15.902532863097147, "marketEvalPct": 100.0, "totalParcels": 450228, "calcParcels": 450228, "parcelPct": 100.0}, {"no": 52, "province": "ลพบุรี", "target": 49130, "checked": 49130, "checkedPct": 100.0, "fixed": 49130, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 6976, "groupedUnits": 378, "marketPct": 5.418577981651376, "marketEvalPct": 100.0, "totalParcels": 349812, "calcParcels": 363613, "parcelPct": 103.94526202645993}, {"no": 53, "province": "ลำปาง", "target": 9061, "checked": 9061, "checkedPct": 100.0, "fixed": 9061, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 1392, "groupedUnits": 140, "marketPct": 10.057471264367816, "marketEvalPct": 100.0, "totalParcels": 628734, "calcParcels": 628734, "parcelPct": 100.0}, {"no": 54, "province": "ลำพูน", "target": 3824, "checked": 3824, "checkedPct": 100.0, "fixed": 3824, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 1510, "groupedUnits": 719, "marketPct": 47.6158940397351, "marketEvalPct": 100.0, "totalParcels": 352882, "calcParcels": 353577, "parcelPct": 100.19694968856444}, {"no": 55, "province": "เลย", "target": 13903, "checked": 13903, "checkedPct": 100.0, "fixed": 13903, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 1857, "groupedUnits": 704, "marketPct": 37.91060850834679, "marketEvalPct": 100.0, "totalParcels": 314891, "calcParcels": 330333, "parcelPct": 104.90391913392254}, {"no": 56, "province": "ศรีสะเกษ", "target": 24993, "checked": 24993, "checkedPct": 100.0, "fixed": 24993, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 1829, "groupedUnits": 491, "marketPct": 26.84527063969382, "marketEvalPct": 100.0, "totalParcels": 810000, "calcParcels": 823368, "parcelPct": 101.65037037037037}, {"no": 57, "province": "สกลนคร", "target": 1172, "checked": 1172, "checkedPct": 100.0, "fixed": 1172, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 624, "groupedUnits": 195, "marketPct": 31.25, "marketEvalPct": 100.0, "totalParcels": 629990, "calcParcels": 638524, "parcelPct": 101.35462467658216}, {"no": 58, "province": "สงขลา", "target": 103676, "checked": 103676, "checkedPct": 100.0, "fixed": 103676, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 24346, "groupedUnits": 2443, "marketPct": 10.034502587694078, "marketEvalPct": 100.0, "totalParcels": 1127332, "calcParcels": 1146315, "parcelPct": 101.68388726657275}, {"no": 59, "province": "สตูล", "target": 4735, "checked": 4735, "checkedPct": 100.0, "fixed": 4735, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 1781, "groupedUnits": 179, "marketPct": 10.05053340819764, "marketEvalPct": 100.0, "totalParcels": 189918, "calcParcels": 193321, "parcelPct": 101.79182594593456}, {"no": 60, "province": "สมุทรปราการ", "target": 13485, "checked": 13485, "checkedPct": 100.0, "fixed": 13485, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 11098, "groupedUnits": 2967, "marketPct": 26.734546765182916, "marketEvalPct": 100.0, "totalParcels": 595922, "calcParcels": 610651, "parcelPct": 102.47163219347499}, {"no": 61, "province": "สมุทรสงคราม", "target": 1603, "checked": 1603, "checkedPct": 100.0, "fixed": 1603, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 1434, "groupedUnits": 326, "marketPct": 22.733612273361228, "marketEvalPct": 100.0, "totalParcels": 97633, "calcParcels": 97633, "parcelPct": 100.0}, {"no": 62, "province": "สมุทรสาคร", "target": 11369, "checked": 11369, "checkedPct": 100.0, "fixed": 11369, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 6059, "groupedUnits": 636, "marketPct": 10.49678164713649, "marketEvalPct": 100.0, "totalParcels": 291943, "calcParcels": 302851, "parcelPct": 103.7363457935282}, {"no": 63, "province": "สระแก้ว", "target": 596, "checked": 596, "checkedPct": 100.0, "fixed": 596, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 1252, "groupedUnits": 214, "marketPct": 17.0926517571885, "marketEvalPct": 100.0, "totalParcels": 153663, "calcParcels": 153663, "parcelPct": 100.0}, {"no": 64, "province": "สระบุรี", "target": 21079, "checked": 21079, "checkedPct": 100.0, "fixed": 21079, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 8746, "groupedUnits": 934, "marketPct": 10.679167619483191, "marketEvalPct": 100.0, "totalParcels": 378457, "calcParcels": 379889, "parcelPct": 100.37837852120583}, {"no": 65, "province": "สิงห์บุรี", "target": 2852, "checked": 2852, "checkedPct": 100.0, "fixed": 2852, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 2047, "groupedUnits": 139, "marketPct": 6.790425012212994, "marketEvalPct": 100.0, "totalParcels": 124805, "calcParcels": 128389, "parcelPct": 102.87167982052001}, {"no": 66, "province": "สุโขทัย", "target": 5949, "checked": 5949, "checkedPct": 100.0, "fixed": 5949, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 2063, "groupedUnits": 489, "marketPct": 23.703344643722733, "marketEvalPct": 100.0, "totalParcels": 316951, "calcParcels": 325597, "parcelPct": 102.72786645254315}, {"no": 67, "province": "สุพรรณบุรี", "target": 39224, "checked": 39224, "checkedPct": 100.0, "fixed": 39224, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 13723, "groupedUnits": 691, "marketPct": 5.03534212635721, "marketEvalPct": 100.0, "totalParcels": 495251, "calcParcels": 495251, "parcelPct": 100.0}, {"no": 68, "province": "สุราษฎร์ธานี", "target": 15680, "checked": 15680, "checkedPct": 100.0, "fixed": 15680, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 6580, "groupedUnits": 990, "marketPct": 15.045592705167174, "marketEvalPct": 100.0, "totalParcels": 613505, "calcParcels": 625347, "parcelPct": 101.93022061759889}, {"no": 69, "province": "สุรินทร์", "target": 200000, "checked": 200000, "checkedPct": 100.0, "fixed": 200000, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 3999, "groupedUnits": 1141, "marketPct": 28.532133033258315, "marketEvalPct": 100.0, "totalParcels": 801669, "calcParcels": 802306, "parcelPct": 100.0794592281852}, {"no": 70, "province": "หนองคาย", "target": 6673, "checked": 6673, "checkedPct": 100.0, "fixed": 6673, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 3121, "groupedUnits": 402, "marketPct": 12.88048702338994, "marketEvalPct": 100.0, "totalParcels": 258168, "calcParcels": 271746, "parcelPct": 105.2593659942363}, {"no": 71, "province": "หนองบัวลำภู", "target": 1734, "checked": 1734, "checkedPct": 100.0, "fixed": 1734, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 1012, "groupedUnits": 220, "marketPct": 21.73913043478261, "marketEvalPct": 100.0, "totalParcels": 200963, "calcParcels": 200963, "parcelPct": 100.0}, {"no": 72, "province": "อ่างทอง", "target": 455, "checked": 455, "checkedPct": 100.0, "fixed": 455, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 1574, "groupedUnits": 554, "marketPct": 35.19695044472681, "marketEvalPct": 100.0, "totalParcels": 172700, "calcParcels": 173901, "parcelPct": 100.69542559351477}, {"no": 73, "province": "อำนาจเจริญ", "target": 33834, "checked": 33834, "checkedPct": 100.0, "fixed": 33834, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 1427, "groupedUnits": 362, "marketPct": 25.367904695164682, "marketEvalPct": 100.0, "totalParcels": 211740, "calcParcels": 236465, "parcelPct": 111.677056767734}, {"no": 74, "province": "อุดรธานี", "target": 1480, "checked": 1480, "checkedPct": 100.0, "fixed": 1480, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 12374, "groupedUnits": 963, "marketPct": 7.7824470664296115, "marketEvalPct": 100.0, "totalParcels": 785859, "calcParcels": 790833, "parcelPct": 100.63293796978847}, {"no": 75, "province": "อุตรดิตถ์", "target": 29447, "checked": 29447, "checkedPct": 100.0, "fixed": 29447, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 3704, "groupedUnits": 452, "marketPct": 12.203023758099352, "marketEvalPct": 100.0, "totalParcels": 308325, "calcParcels": 310626, "parcelPct": 100.74629044028217}, {"no": 76, "province": "อุทัยธานี", "target": 1053, "checked": 1053, "checkedPct": 100.0, "fixed": 1053, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 1810, "groupedUnits": 386, "marketPct": 21.325966850828728, "marketEvalPct": 100.0, "totalParcels": 153096, "calcParcels": 153775, "parcelPct": 100.44351256727803}, {"no": 77, "province": "อุบลราชธานี", "target": 11414, "checked": 11414, "checkedPct": 100.0, "fixed": 11414, "fixedPct": 100.0, "standardPct": 100.0, "totalUnits": 3442, "groupedUnits": 751, "marketPct": 21.818710052295177, "marketEvalPct": 100.0, "totalParcels": 835130, "calcParcels": 853335, "parcelPct": 102.17990013530826}];
-let SUMMARY={"target": 1207299, "checked": 1207299, "checkedPct": 100.0, "fixed": 1207299, "fixedPct": 100.0, "totalUnits": 419689, "groupedUnits": 57601, "marketPct": 13.724686613182618, "marketTargetPct": 5, "totalParcels": 37220677, "calcParcels": 36950651, "parcelPct": 99.27452689804647};
-const REGIONS={"กรุงเทพมหานคร": "กรุงเทพฯและปริมณฑล", "นนทบุรี": "กรุงเทพฯและปริมณฑล", "ปทุมธานี": "กรุงเทพฯและปริมณฑล", "สมุทรปราการ": "กรุงเทพฯและปริมณฑล", "สมุทรสาคร": "กรุงเทพฯและปริมณฑล", "นครปฐม": "กรุงเทพฯและปริมณฑล", "เชียงใหม่": "ภาคเหนือ", "เชียงราย": "ภาคเหนือ", "ลำพูน": "ภาคเหนือ", "ลำปาง": "ภาคเหนือ", "แม่ฮ่องสอน": "ภาคเหนือ", "น่าน": "ภาคเหนือ", "พะเยา": "ภาคเหนือ", "แพร่": "ภาคเหนือ", "อุตรดิตถ์": "ภาคเหนือ", "ตาก": "ภาคเหนือ", "สุโขทัย": "ภาคเหนือ", "พิษณุโลก": "ภาคเหนือ", "พิจิตร": "ภาคเหนือ", "กำแพงเพชร": "ภาคเหนือ", "เพชรบูรณ์": "ภาคเหนือ", "นครสวรรค์": "ภาคเหนือ", "อุทัยธานี": "ภาคเหนือ", "นครราชสีมา": "ภาคตะวันออกเฉียงเหนือ", "บุรีรัมย์": "ภาคตะวันออกเฉียงเหนือ", "สุรินทร์": "ภาคตะวันออกเฉียงเหนือ", "ศรีสะเกษ": "ภาคตะวันออกเฉียงเหนือ", "อุบลราชธานี": "ภาคตะวันออกเฉียงเหนือ", "ยโสธร": "ภาคตะวันออกเฉียงเหนือ", "ชัยภูมิ": "ภาคตะวันออกเฉียงเหนือ", "อำนาจเจริญ": "ภาคตะวันออกเฉียงเหนือ", "บึงกาฬ": "ภาคตะวันออกเฉียงเหนือ", "หนองบัวลำภู": "ภาคตะวันออกเฉียงเหนือ", "ขอนแก่น": "ภาคตะวันออกเฉียงเหนือ", "อุดรธานี": "ภาคตะวันออกเฉียงเหนือ", "เลย": "ภาคตะวันออกเฉียงเหนือ", "หนองคาย": "ภาคตะวันออกเฉียงเหนือ", "มหาสารคาม": "ภาคตะวันออกเฉียงเหนือ", "ร้อยเอ็ด": "ภาคตะวันออกเฉียงเหนือ", "กาฬสินธุ์": "ภาคตะวันออกเฉียงเหนือ", "สกลนคร": "ภาคตะวันออกเฉียงเหนือ", "นครพนม": "ภาคตะวันออกเฉียงเหนือ", "มุกดาหาร": "ภาคตะวันออกเฉียงเหนือ", "ชลบุรี": "ภาคตะวันออก", "ระยอง": "ภาคตะวันออก", "จันทบุรี": "ภาคตะวันออก", "ตราด": "ภาคตะวันออก", "ฉะเชิงเทรา": "ภาคตะวันออก", "ปราจีนบุรี": "ภาคตะวันออก", "นครนายก": "ภาคตะวันออก", "สระแก้ว": "ภาคตะวันออก", "ราชบุรี": "ภาคตะวันตก", "กาญจนบุรี": "ภาคตะวันตก", "สุพรรณบุรี": "ภาคตะวันตก", "สมุทรสงคราม": "ภาคตะวันตก", "เพชรบุรี": "ภาคตะวันตก", "ประจวบคีรีขันธ์": "ภาคตะวันตก", "พระนครศรีอยุธยา": "ภาคกลาง", "อ่างทอง": "ภาคกลาง", "ลพบุรี": "ภาคกลาง", "สิงห์บุรี": "ภาคกลาง", "ชัยนาท": "ภาคกลาง", "สระบุรี": "ภาคกลาง", "ชุมพร": "ภาคใต้", "ระนอง": "ภาคใต้", "สุราษฎร์ธานี": "ภาคใต้", "พังงา": "ภาคใต้", "ภูเก็ต": "ภาคใต้", "กระบี่": "ภาคใต้", "นครศรีธรรมราช": "ภาคใต้", "ตรัง": "ภาคใต้", "พัทลุง": "ภาคใต้", "สตูล": "ภาคใต้", "สงขลา": "ภาคใต้", "ปัตตานี": "ภาคใต้", "ยะลา": "ภาคใต้", "นราธิวาส": "ภาคใต้"};
-const SHEET_ID='1AkYFYeTVGFnokzTXvl14WA4nDqWZSb-MxsW_eyHnALE',SHEET_GID='0';
-const MAP_URL='https://raw.githubusercontent.com/knottx/opengisdata-thailand/refs/heads/master/provinces.geojson';let mapReady=false;
-const fmt=n=>new Intl.NumberFormat('th-TH').format(Math.round(n||0));const pct=n=>(n||0).toLocaleString('th-TH',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';const clamp=n=>Math.max(0,Math.min(100,n||0));
-function regionOf(p){return REGIONS[p]||'อื่น ๆ'} function st(v){if(v===0)return'ZERO';if(v>=95)return'HIGH';if(v>=80)return'MID';return'LOW'} function color(v){if(v===0)return'#9ba7b6';if(v>=95)return'#16885b';if(v>=80)return'#c78b18';if(v>=50)return'#dc7f27';return'#c94949'}
-function filtered(){let r=region.value,s=status.value,q=search.value.trim().toLowerCase();return DATA.filter(d=>(r==='ALL'||regionOf(d.province)===r)&&(s==='ALL'||st(d.parcelPct)===s)&&(!q||d.province.toLowerCase().includes(q)))} function agg(a){let o={totalParcels:0,calcParcels:0,totalUnits:0,groupedUnits:0};a.forEach(d=>{o.totalParcels+=d.totalParcels;o.calcParcels+=d.calcParcels;o.totalUnits+=d.totalUnits;o.groupedUnits+=d.groupedUnits});o.parcelPct=o.totalParcels?o.calcParcels/o.totalParcels*100:0;o.marketPct=o.totalUnits?o.groupedUnits/o.totalUnits*100:0;return o}
-function render(){let a=filtered(),g=agg(a);kProv.textContent=fmt(a.length);kTotal.textContent=fmt(g.totalParcels);kCalc.textContent=fmt(g.calcParcels);kMarket.textContent=fmt(g.groupedUnits);kMarketMeta.textContent=pct(g.marketPct)+' ของหน่วยที่ดิน';kPct.textContent=pct(g.parcelPct);let c={HIGH:0,MID:0,LOW:0,ZERO:0};a.forEach(d=>c[st(d.parcelPct)]++);sHigh.textContent=c.HIGH;sMid.textContent=c.MID;sLow.textContent=c.LOW;sZero.textContent=c.ZERO;
-urgent.innerHTML=[...a].sort((x,y)=>x.parcelPct-y.parcelPct).slice(0,8).map(d=>`<div class="row"><span>${d.province}</span><div class="bar"><div class="fill" style="width:${clamp(d.parcelPct)}%;background:${color(d.parcelPct)}"></div></div><b style="text-align:right;color:${color(d.parcelPct)}">${pct(d.parcelPct)}</b></div>`).join('');
-let deg=clamp(g.parcelPct)*3.6;donut.style.background=`conic-gradient(var(--green) 0deg ${deg}deg,#edf1f5 ${deg}deg 360deg)`;donutPct.textContent=pct(g.parcelPct);doneN.textContent=fmt(g.calcParcels);remainN.textContent=fmt(Math.max(0,g.totalParcels-g.calcParcels));renderRegions(a);renderHist(a);renderRanks(a);renderTable(a);refreshMap(a)}
-function renderRegions(a){let names=[...new Set(DATA.map(d=>regionOf(d.province)))].sort();regionBars.innerHTML=names.map(n=>{let x=agg(a.filter(d=>regionOf(d.province)===n)),v=x.parcelPct||0;return `<div class="rb"><i>${v?pct(v):'-'}</i><div class="col" style="height:${Math.max(3,v*1.65)}px;opacity:${v?1:.15}"></div><label title="${n}">${n.replace('ภาค','')}</label></div>`}).join('')}
-function renderHist(a){let bins=Array(10).fill(0);a.forEach(d=>bins[Math.min(9,Math.floor(clamp(d.parcelPct)/10))]++);let mx=Math.max(1,...bins);hist.innerHTML=bins.map((n,i)=>`<div class="hb"><i>${n}</i><div class="col" style="height:${Math.max(2,n/mx*165)}px"></div><label>${i*10}-${i===9?'100':i*10+9}</label></div>`).join('')}
-function ranks(a){return a.map((d,i)=>`<div class="rankitem"><span class="num">${i+1}</span><span>${d.province}</span><div class="bar"><div class="fill" style="width:${clamp(d.parcelPct)}%;background:${color(d.parcelPct)}"></div></div><b style="text-align:right;color:${color(d.parcelPct)}">${pct(d.parcelPct)}</b></div>`).join('')} function renderRanks(a){top10.innerHTML=ranks([...a].sort((x,y)=>y.parcelPct-x.parcelPct).slice(0,10));bottom10.innerHTML=ranks([...a].sort((x,y)=>x.parcelPct-y.parcelPct).slice(0,10))}
-function pill(v){let s=st(v);return s==='HIGH'?['high','ดี']:s==='MID'?['mid','เฝ้าระวัง']:s==='ZERO'?['zero','ยังไม่เริ่ม']:['low','เร่งรัด']} function renderTable(a){tbody.innerHTML=a.map(d=>{let p=pill(d.parcelPct);return `<tr><td>${d.no}</td><td>${d.province}</td><td>${regionOf(d.province)}</td><td>${fmt(d.target)}</td><td>${pct(d.checkedPct)}</td><td>${pct(d.fixedPct)}</td><td>${fmt(d.totalUnits)}</td><td>${pct(d.marketPct)}</td><td>${fmt(d.totalParcels)}</td><td>${fmt(d.calcParcels)}</td><td>${pct(d.parcelPct)}</td><td><span class="pill ${p[0]}">${p[1]}</span></td></tr>`}).join('');tableCount.textContent=fmt(a.length)+' จังหวัด'}
-function norm(n){return {'กรุงเทพ':'กรุงเทพมหานคร','กรุงเทพฯ':'กรุงเทพมหานคร'}[n]||n} function pathFor(coords,minX,maxX,minY,maxY){const W=500,H=900,p=20,s=Math.min((W-p*2)/(maxX-minX),(H-p*2)/(maxY-minY)),ox=(W-(maxX-minX)*s)/2,oy=(H-(maxY-minY)*s)/2,pt=([x,y])=>[(x-minX)*s+ox,H-((y-minY)*s+oy)],ring=r=>r.map((q,i)=>{let[x,y]=pt(q);return`${i?'L':'M'}${x.toFixed(2)},${y.toFixed(2)}`}).join(' ')+' Z';return typeof coords[0][0][0]==='number'?coords.map(ring).join(' '):coords.map(poly=>poly.map(ring).join(' ')).join(' ')}
-async function initMap(){try{let res=await fetch(MAP_URL),geo=await res.json(),pts=[];const dig=o=>Array.isArray(o)&&typeof o[0]==='number'?pts.push(o):Array.isArray(o)&&o.forEach(dig);geo.features.forEach(f=>dig(f.geometry.coordinates));let xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]),b=[Math.min(...xs),Math.max(...xs),Math.min(...ys),Math.max(...ys)];thaiMap.innerHTML='';geo.features.forEach(f=>{let name=norm(f.properties.pro_th),p=document.createElementNS('http://www.w3.org/2000/svg','path');p.setAttribute('d',pathFor(f.geometry.coordinates,...b));p.setAttribute('class','province');p.dataset.province=name;p.addEventListener('mousemove',e=>{let d=DATA.find(x=>norm(x.province)===name);tip.style.display='block';tip.style.left=(e.clientX+12)+'px';tip.style.top=(e.clientY+12)+'px';tip.innerHTML=d?`<b>${d.province}</b><br>${regionOf(d.province)}<br>คำนวณราคา: ${pct(d.parcelPct)}<br>${fmt(d.calcParcels)} / ${fmt(d.totalParcels)} แปลง<br>จัดกลุ่มตลาด: ${pct(d.marketPct)}`:`<b>${name}</b><br>ไม่พบข้อมูล`});p.addEventListener('mouseleave',()=>tip.style.display='none');thaiMap.appendChild(p)});loading.style.display='none';mapReady=true;refreshMap(filtered())}catch(e){loading.innerHTML='ไม่สามารถโหลดแผนที่ได้<br><small>กรุณาเชื่อมต่ออินเทอร์เน็ตแล้วรีเฟรช</small>'}}
-function refreshMap(a){if(!mapReady)return;let allow=new Set(a.map(d=>norm(d.province))),look=new Map(DATA.map(d=>[norm(d.province),d]));document.querySelectorAll('.province').forEach(p=>{let d=look.get(norm(p.dataset.province));p.setAttribute('fill',allow.has(norm(p.dataset.province))&&d?color(d.parcelPct):'#d9e0e8')})}
-function parseSheet(resp){let raw=resp.table.rows.map(r=>(r.c||[]).map(c=>c?(c.v??c.f??''):'')),out=[],n=v=>{if(v===null||v===undefined||v==='')return 0;let x=Number(String(v).replace(/,/g,'').replace(/%/g,''));return Number.isFinite(x)?x:0};raw.forEach(r=>{let no=n(r[0]),province=String(r[1]||'').trim();if(!no||!province)return;let target=n(r[2]),checked=n(r[3]),fixed=n(r[5]),tu=n(r[8]),gu=n(r[9]),tp=n(r[12]),cp=n(r[13]);out.push({no:Math.round(no),province,target,checked,checkedPct:target?checked/target*100:0,fixed,fixedPct:target?fixed/target*100:0,totalUnits:tu,groupedUnits:gu,marketPct:tu?gu/tu*100:0,totalParcels:tp,calcParcels:cp,parcelPct:tp?cp/tp*100:0})});if(out.length<70)throw Error('พบข้อมูลจังหวัดไม่ครบ');return out}
-function setLive(t,x){live.className='live '+(t||'');liveText.textContent=x} function loadLiveData(){setLive('','กำลังอัปเดตจาก Google Sheets...');let old=document.getElementById('gs');if(old)old.remove();let s=document.createElement('script');s.id='gs';s.src=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?gid=${SHEET_GID}&tqx=responseHandler:handleGoogleSheetResponse&_=${Date.now()}`;s.onerror=()=>setLive('error','เชื่อมต่อ Google Sheets ไม่สำเร็จ • ใช้ข้อมูลสำรอง');document.head.appendChild(s)} function handleGoogleSheetResponse(resp){try{DATA=parseSheet(resp);syncRegions();setLive('ok','ข้อมูลสด • '+new Date().toLocaleString('th-TH',{dateStyle:'short',timeStyle:'short'}));render()}catch(e){setLive('error','ใช้ข้อมูลสำรอง • '+e.message)}}
-function syncRegions(){let cur=region.value,n=[...new Set(DATA.map(d=>regionOf(d.province)))].sort();region.innerHTML='<option value="ALL">ทั้งหมด</option>'+n.map(x=>`<option value="${x}">${x}</option>`).join('');if([...region.options].some(o=>o.value===cur))region.value=cur}
-region.addEventListener('change',render);status.addEventListener('change',render);search.addEventListener('input',render);reset.addEventListener('click',()=>{region.value='ALL';status.value='ALL';search.value='';render()});
-syncRegions();render();initMap();loadLiveData();
-</script></body></html>
+const $ = id => document.getElementById(id);
+const PALETTE = ['#1d4ed8','#0ea5e9','#0f172a','#22d3ee','#3b82f6','#000000'];
+let current = 'text', qr = null;
+
+/* ── สร้างชุดสีลัด ── */
+PALETTE.forEach(c => {
+  const s = document.createElement('div');
+  s.className = 'sw'; s.style.background = c; s.title = c;
+  s.onclick = () => { $('fg').value = c; render(); };
+  $('swatches').appendChild(s);
+});
+
+/* ── สลับแท็บ ── */
+$('tabs').addEventListener('click', e => {
+  const tab = e.target.closest('.tab'); if (!tab) return;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+  tab.classList.add('active');
+  current = tab.dataset.pane;
+  $('pane-' + current).classList.add('active');
+  $('metaType').textContent = 'ประเภท: ' + tab.textContent.trim();
+  render();
+});
+
+/* ── ประกอบสตริงตามประเภท ── */
+const esc = s => (s || '').replace(/([\\;,:"])/g, '\\$1');
+function buildData() {
+  switch (current) {
+    case 'wifi': {
+      const ssid = $('w-ssid').value.trim(); if (!ssid) return '';
+      const enc = $('w-enc').value;
+      return `WIFI:T:${enc};S:${esc(ssid)};${enc !== 'nopass' ? 'P:' + esc($('w-pass').value) + ';' : ''};`;
+    }
+    case 'mail': {
+      const to = $('m-to').value.trim(); if (!to) return '';
+      const q = [];
+      if ($('m-sub').value) q.push('subject=' + encodeURIComponent($('m-sub').value));
+      if ($('m-body').value) q.push('body=' + encodeURIComponent($('m-body').value));
+      return 'mailto:' + to + (q.length ? '?' + q.join('&') : '');
+    }
+    case 'tel': {
+      const n = $('p-num').value.replace(/\s/g, ''); if (!n) return '';
+      return $('p-mode').value === 'sms'
+        ? `SMSTO:${n}:${$('p-msg').value}` : 'tel:' + n;
+    }
+    case 'card': {
+      const name = $('c-name').value.trim(); if (!name) return '';
+      return ['BEGIN:VCARD','VERSION:3.0',`FN:${name}`,`N:${name};;;;`,
+        $('c-org').value && `ORG:${$('c-org').value}`,
+        $('c-title').value && `TITLE:${$('c-title').value}`,
+        $('c-tel').value && `TEL;TYPE=CELL:${$('c-tel').value}`,
+        $('c-mail').value && `EMAIL:${$('c-mail').value}`,
+        $('c-web').value && `URL:${$('c-web').value}`,
+        'END:VCARD'].filter(Boolean).join('\n');
+    }
+    default: return $('t-text').value.trim();
+  }
+}
+
+/* ── วาด QR ── */
+function draw(target, data, size) {
+  target.innerHTML = '';
+  return new QRCode(target, {
+    text: data, width: size, height: size,
+    colorDark: $('fg').value, colorLight: $('bg').value,
+    correctLevel: QRCode.CorrectLevel[$('ecl').value]
+  });
+}
+function render() {
+  const data = buildData(), stage = $('stage'), box = $('qr');
+  $('metaLen').textContent = data.length + ' อักขระ';
+  if (!data) {
+    stage.classList.add('empty');
+    box.innerHTML = 'กรอกข้อมูลให้ครบ<br>เพื่อสร้าง QR Code';
+    qr = null; return;
+  }
+  if (data.length > 2200) return toast('⚠️ ข้อมูลยาวเกินไป');
+  stage.classList.remove('empty');
+  stage.style.background = $('bg').value;
+  qr = draw(box, data, +$('size').value);
+}
+
+/* ── ดาวน์โหลด PNG ความละเอียดสูง 1024px ── */
+function hiResCanvas() {
+  const data = buildData(); if (!data) return null;
+  const tmp = document.createElement('div');
+  tmp.style.cssText = 'position:fixed;left:-9999px;top:0';
+  document.body.appendChild(tmp);
+  draw(tmp, data, 1024);
+  const c = tmp.querySelector('canvas');
+  const out = c ? c.toDataURL('image/png') : null;
+  document.body.removeChild(tmp);
+  return out;
+}
+$('dl').onclick = () => {
+  const url = hiResCanvas();
+  if (!url) return toast('⚠️ ยังไม่มี QR ให้ดาวน์โหลด');
+  const a = document.createElement('a');
+  a.href = url; a.download = `qrcode-${current}-${Date.now()}.png`; a.click();
+  toast('✅ ดาวน์โหลดสำเร็จ');
+};
+$('copy').onclick = async () => {
+  const url = hiResCanvas();
+  if (!url) return toast('⚠️ ยังไม่มี QR ให้คัดลอก');
+  try {
+    const blob = await (await fetch(url)).blob();
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+    toast('✅ คัดลอกรูปแล้ว');
+  } catch { toast('⚠️ เบราว์เซอร์นี้ไม่รองรับการคัดลอกรูป'); }
+};
+$('reset').onclick = () => {
+  document.querySelectorAll('input:not([type=color]):not([type=range]),textarea').forEach(i => i.value = '');
+  $('fg').value = '#1d4ed8'; $('bg').value = '#ffffff'; $('size').value = 280; $('sizeLabel').textContent = 280;
+  render(); toast('♻️ ล้างค่าเรียบร้อย');
+};
+
+/* ── Toast ── */
+let timer;
+function toast(msg) {
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(timer); timer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+/* ── Events ── */
+$('gen').onclick = () => { render(); toast('✨ สร้าง QR Code สำเร็จ'); };
+$('size').oninput = e => { $('sizeLabel').textContent = e.target.value; render(); };
+['fg','bg','ecl','w-enc','p-mode'].forEach(id => $(id).oninput = render);
+document.querySelectorAll('input:not([type=range]),textarea').forEach(el => {
+  el.addEventListener('input', () => { clearTimeout(el._t); el._t = setTimeout(render, 320); });
+});
+render();
+</script>
+</body>
+</html>
