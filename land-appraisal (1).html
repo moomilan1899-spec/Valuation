@@ -287,33 +287,11 @@
   <section class="tab-panel card" id="tab2">
     <div class="grid">
       <div>
-        <h2 class="section-title">ข้อมูลถนนหน้า-หลัง (ผ่ากลางแปลง)</h2>
+        <h2 class="section-title">ข้อมูลถนนที่ผ่ากลางแปลง</h2>
 
-        <div class="side-block">
-          <h3>ความลึกมาตรฐาน (ใช้ร่วมกันทั้งสองด้าน)</h3>
-          <div class="field-row">
-            <div class="field">
-              <label>ความลึกมาตรฐาน (ม.)</label>
-              <input type="number" id="t2-std" value="40" step="any">
-            </div>
-          </div>
-        </div>
+        <div id="t2-sideBlocks"></div>
 
-        <div class="side-block">
-          <h3>ถนนด้านหน้า</h3>
-          <div class="field-row">
-            <div class="field"><label>มูลค่าถนน (บาท/ตร.ว.)</label><input type="number" id="t2-v1" value="2500" step="any"></div>
-            <div class="field"><label>ความลึกแปลง (ม.)</label><input type="number" id="t2-d1" value="175" step="any"></div>
-          </div>
-        </div>
-
-        <div class="side-block">
-          <h3>ถนนด้านหลัง</h3>
-          <div class="field-row">
-            <div class="field"><label>มูลค่าถนน (บาท/ตร.ว.)</label><input type="number" id="t2-v2" value="2500" step="any"></div>
-            <div class="field"><label>ความลึกแปลง (ม.)</label><input type="number" id="t2-d2" value="16" step="any"></div>
-          </div>
-        </div>
+        <button class="carry-btn" id="t2-addSide" type="button" style="background:var(--forest); color:#fff;">+ เพิ่มด้าน</button>
       </div>
 
       <div>
@@ -325,8 +303,8 @@
         <table class="breakdown" id="t2-table"></table>
         <button class="carry-btn" id="t2-carry">ส่งค่านี้ไปที่ "โปรแกรมคำนวณราคาประเมิน"</button>
         <div class="note">
-          ราคาแต่ละด้าน = มูลค่าถนน × ค่าตัวคูณ (ตามระยะความลึกของด้านนั้น เทียบกับความลึกมาตรฐานเดียวกัน)<br>
-          ราคาประเมินสุดท้าย = ค่าเฉลี่ยของราคาทั้งสองด้าน แล้วปัดเศษแบบ MROUND
+          ราคาแต่ละด้าน = มูลค่าถนน (ราคาหน่วย) × ค่าตัวคูณ (ตามระยะความลึกแปลง เทียบกับความลึกมาตรฐานของด้านนั้น ๆ)<br>
+          ราคาประเมินสุดท้าย = ค่าเฉลี่ยของราคาทุกด้าน แล้วปัดเศษแบบ MROUND (รองรับตั้งแต่ 2 ด้านขึ้นไป)
         </div>
       </div>
     </div>
@@ -589,28 +567,80 @@ document.getElementById('t1-carry').addEventListener('click', ()=>{
 
 /* ================= TAB 2 : ถนนผ่ากลาง ================= */
 let lastT2Result = null;
+let t2Sides = [
+  {label:'ด้านหน้า', v:2500, s:40, d:175},
+  {label:'ด้านหลัง', v:2500, s:40, d:16}
+];
+
+function renderT2Sides(){
+  const box = document.getElementById('t2-sideBlocks');
+  box.innerHTML = '';
+  t2Sides.forEach((s,i)=>{
+    const block = document.createElement('div');
+    block.className = 'side-block';
+    const removeBtn = t2Sides.length>2
+      ? `<button type="button" class="t2-remove" data-i="${i}" style="float:right; background:none; border:none; color:var(--rust); font-weight:700; cursor:pointer; font-size:.85rem;">ลบ ✕</button>`
+      : '';
+    block.innerHTML = `
+      <h3>${s.label || ('ด้านที่ '+(i+1))} ${removeBtn}</h3>
+      <div class="field-row">
+        <div class="field"><label>ชื่อด้าน (ถ้ามี)</label><input type="text" class="t2-label" data-i="${i}" value="${s.label}"></div>
+        <div class="field"><label>ความลึกมาตรฐาน (ม.)</label><input type="number" class="t2-s" data-i="${i}" value="${s.s}" step="any"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>มูลค่าถนน / ราคาหน่วย (บาท/ตร.ว.)</label><input type="number" class="t2-v" data-i="${i}" value="${s.v}" step="any"></div>
+        <div class="field"><label>ความลึกแปลง (ม.)</label><input type="number" class="t2-d" data-i="${i}" value="${s.d}" step="any"></div>
+      </div>
+    `;
+    box.appendChild(block);
+  });
+
+  box.querySelectorAll('.t2-v, .t2-d, .t2-s, .t2-label').forEach(inp=>{
+    inp.addEventListener('input', (e)=>{
+      const i = parseInt(e.target.dataset.i,10);
+      if(e.target.classList.contains('t2-v')) t2Sides[i].v = parseFloat(e.target.value)||0;
+      if(e.target.classList.contains('t2-d')) t2Sides[i].d = parseFloat(e.target.value)||0;
+      if(e.target.classList.contains('t2-s')) t2Sides[i].s = parseFloat(e.target.value)||0;
+      if(e.target.classList.contains('t2-label')) t2Sides[i].label = e.target.value;
+      calcTab2();
+    });
+  });
+  box.querySelectorAll('.t2-remove').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      const i = parseInt(e.target.dataset.i,10);
+      t2Sides.splice(i,1);
+      renderT2Sides();
+      calcTab2();
+    });
+  });
+}
+
+document.getElementById('t2-addSide').addEventListener('click', ()=>{
+  t2Sides.push({label:'ด้านที่ '+(t2Sides.length+1), v:1000, s:40, d:40});
+  renderT2Sides();
+  calcTab2();
+});
 
 function calcTab2(){
-  const std = parseFloat(document.getElementById('t2-std').value) || 0;
-  const v1 = parseFloat(document.getElementById('t2-v1').value) || 0;
-  const d1 = parseFloat(document.getElementById('t2-d1').value) || 0;
-  const v2 = parseFloat(document.getElementById('t2-v2').value) || 0;
-  const d2 = parseFloat(document.getElementById('t2-d2').value) || 0;
+  const rows = t2Sides.map(s=>{
+    const tier = tierOf(s.s, s.d);
+    const f = factorOf(s.s, s.d);
+    const g = s.v*f;
+    return {...s, tier, f, g};
+  });
 
-  const f1 = factorOf(std, d1);
-  const f2 = factorOf(std, d2);
-  const g1 = v1*f1;
-  const g2 = v2*f2;
-  const avg = (g1+g2)/2;
+  const avg = rows.reduce((a,r)=>a+r.g,0)/(rows.length||1);
   const final = mround(avg, roundStep(avg));
 
   document.getElementById('t2-final').textContent = fmt(final);
-  document.getElementById('t2-table').innerHTML = `
-    <tr><th>ด้าน</th><th>ระยะ (tier)</th><th>ค่าตัวคูณ</th><th>ราคา (ยังไม่ปัดเศษ)</th></tr>
-    <tr><td>ด้านหน้า</td><td>${tierOf(std,d1)}</td><td>${f1}</td><td>${fmt(g1)}</td></tr>
-    <tr><td>ด้านหลัง</td><td>${tierOf(std,d2)}</td><td>${f2}</td><td>${fmt(g2)}</td></tr>
-    <tr class="merge-row"><td>ค่าเฉลี่ย (ปัดเศษแล้ว)</td><td colspan="2"></td><td>${fmt(final)}</td></tr>
-  `;
+
+  let tableHtml = `<tr><th>ด้าน</th><th>ระยะ (tier)</th><th>ค่าตัวคูณ</th><th>ราคา (ยังไม่ปัดเศษ)</th></tr>`;
+  rows.forEach(r=>{
+    tableHtml += `<tr><td>${r.label||'-'}</td><td>${r.tier}</td><td>${r.f}</td><td>${fmt(r.g)}</td></tr>`;
+  });
+  tableHtml += `<tr class="merge-row"><td>ค่าเฉลี่ย (ปัดเศษแล้ว)</td><td colspan="2"></td><td>${fmt(final)}</td></tr>`;
+  document.getElementById('t2-table').innerHTML = tableHtml;
+
   lastT2Result = final;
 }
 
@@ -621,9 +651,7 @@ document.getElementById('t2-carry').addEventListener('click', ()=>{
   switchTab('tab3');
 });
 
-['t2-std','t2-v1','t2-d1','t2-v2','t2-d2'].forEach(id=>{
-  document.getElementById(id).addEventListener('input', calcTab2);
-});
+renderT2Sides();
 
 /* ================= TAB 3 : โปรแกรมคำนวณราคาประเมิน ================= */
 const SHAPE_FACTORS = {
