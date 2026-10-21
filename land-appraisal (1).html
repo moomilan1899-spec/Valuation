@@ -65,6 +65,7 @@ footer.foot{margin-top:28px;font-size:.76rem;color:var(--muted);text-align:cente
 .topbar{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}.exp{display:flex;gap:8px}.exp[hidden]{display:none}
 .ex{font:inherit;font-size:.84rem;font-weight:600;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:9px 16px;border-radius:12px;cursor:pointer;transition:.15s}.ex:hover{border-color:var(--forest);color:var(--forest)}.ex:disabled{opacity:.5;cursor:wait}
 #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--forest-dark);color:#fff;padding:10px 18px;border-radius:12px;font-size:.85rem;display:none;z-index:20}
+details.exp{background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin-bottom:16px;font-size:.84rem;line-height:1.75}details.exp summary{cursor:pointer;font-weight:600}details.exp ul{margin:8px 0 0;padding-left:20px;color:var(--muted)}details.exp b{color:var(--ink)}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -81,6 +82,12 @@ footer.foot{margin-top:28px;font-size:.76rem;color:var(--muted);text-align:cente
 <div class="grp">หมวดที่ราชพัสดุและบัญชีแนบท้าย</div>
 <button class="tab-btn" data-tab="tab5" data-cat="ที่ราชพัสดุและบัญชีแนบท้าย">ที่ดินจากบัญชีแนบท้าย</button>
 <button class="tab-btn" data-tab="tab6" data-cat="ที่ราชพัสดุและบัญชีแนบท้าย">ที่ราชพัสดุแปลงใหญ่</button>
+<div class="grp">หมวดหลักเกณฑ์ตามคู่มือกรมธนารักษ์</div>
+<button class="tab-btn" data-tab="tab7" data-cat="หลักเกณฑ์ตามคู่มือกรมธนารักษ์">ค่าตัวคูณความลึก และการปัดเศษ</button>
+<button class="tab-btn" data-tab="tab8" data-cat="หลักเกณฑ์ตามคู่มือกรมธนารักษ์">รูปแปลง และข้อจำกัดการใช้ประโยชน์</button>
+<button class="tab-btn" data-tab="tab9" data-cat="หลักเกณฑ์ตามคู่มือกรมธนารักษ์">ติดถนนหลายด้าน (ข้อ 6-7)</button>
+<button class="tab-btn" data-tab="tab10" data-cat="หลักเกณฑ์ตามคู่มือกรมธนารักษ์">ถนนสองเส้นตัดผ่านแปลง (ข้อ 8)</button>
+<button class="tab-btn" data-tab="tab11" data-cat="หลักเกณฑ์ตามคู่มือกรมธนารักษ์">ใช้ประโยชน์ร่วมกันหลายแปลง (ข้อ 9)</button>
 </aside><main class="main"><div class="topbar"><div><small id="pageCat"></small><h1 id="pageTitle"></h1></div><div class="exp" id="exp"><button class="ex" id="ex-pdf" type="button">ส่งออก PDF</button><button class="ex" id="ex-xlsx" type="button">ส่งออก Excel</button></div></div><div id="toast"></div>
 
   <!-- ================= TAB 1: ถนนหลายด้าน ================= -->
@@ -736,6 +743,95 @@ async function doExport(kind){
   }catch(e){if(!e||e.code!=='declined')toast('ส่งออกไม่สำเร็จ: '+((e&&e.message)||e))}
 }
 ['pdf','xlsx'].forEach(k=>{const b=document.getElementById('ex-'+k);b.onclick=async()=>{b.disabled=true;try{await doExport(k)}finally{b.disabled=false}}});
+
+/* ===== หมวดหลักเกณฑ์ตามคู่มือกรมธนารักษ์ (คำสั่ง 530/2566) ===== */
+const rnd=v=>mround(v,roundStep(v)),$=id=>document.getElementById(id),num=id=>parseFloat($(id).value)||0;
+const fld=(id,l,v)=>`<div class="field"><label>${l}</label><input type="number" id="${id}" value="${v}" step="any"></div>`;
+const sel=(id,l,o,d=0)=>`<div class="field"><label>${l}</label><select class="field-select" id="${id}">${o.map((x,i)=>`<option value="${i}"${i===d?' selected':''}>${x}</option>`).join('')}</select></div>`;
+const st=r=>r.map(x=>`<div class="stat-line"><span>${x[0]}</span><span>${x[1]}</span></div>`).join('');
+const mkTab=(id,html)=>{const s=document.createElement('section');s.className='tab-panel card';s.id=id;s.innerHTML=html;document.querySelector('footer.foot').before(s)};
+const SRC='<p class="lead">ที่มา: คำสั่งกรมธนารักษ์ ที่ 530/2566 ลงวันที่ 24 กรกฎาคม 2566 — หลักเกณฑ์การประเมินราคาที่ดิน (ข้อ 1-14)</p>';
+const SH=[['รูปแปลงปกติ (ข้อ 3.1)',1],['รูปแปลงธง ทางเข้าออกกว้างกว่า 8 ม. (ข้อ 3.2.1.1)',1],['รูปแปลงธง ทางเข้าออกกว้าง 2-8 ม. (ข้อ 3.2.1.2)',.75],['รูปแปลงธง ทางเข้าออกกว้างไม่เกิน 2 ม. (ข้อ 3.2.1.3)',.65],['สามเหลี่ยม ติดถนนมุมเดียว (ข้อ 3.2.2.1)',.35],['สามเหลี่ยม มีด้านใดด้านหนึ่งติดถนน (ข้อ 3.2.2.2)',.65]];
+const SHN=SH.map(x=>x[0]);
+const wire=(id,fn)=>{$(id).addEventListener('input',fn)};
+
+/* --- tab7: ค่าตัวคูณ + ปัดเศษ --- */
+mkTab('tab7',SRC+`<details class="exp" open><summary>หลักเกณฑ์ที่ใช้ (ข้อ 1, 2 และ 14)</summary><ul>
+<li><b>วัดความลึก (ข้อ 1):</b> แปลงทั่วไปวัดจากกึ่งกลางด้านที่ติดถนนถึงกึ่งกลางด้านในสุด · ถนนปลายตันวัดจากกึ่งกลางปลายถนนถึงกึ่งกลางแปลงด้านที่ลึกสุด · ถนนตัดผ่านแปลงวัดแยกแต่ละฝั่ง · รูปธงวัดแนวตั้งฉากกับถนนจากกึ่งกลางด้านติดถนนถึงสุดแปลง · สามเหลี่ยมวัดจากกึ่งกลางฐานถึงปลาย · แปลงที่มีมุมติดถนนวัดจากมุมถึงส่วนที่ลึกสุด · ติดถนนขนาบ 2 ด้านวัดจากกึ่งกลางด้านหนึ่งถึงอีกด้านหนึ่ง</li>
+<li><b>ค่าตัวคูณ (ข้อ 2):</b> ช่วงที่ 1-7 = 100, 87.50, 75.00, 62.50, 53.75, 46.88, 41.07% ขอบช่วงคือ 5/4, 9/4, 13/4, 17/4, 21/4, 25/4 เท่าของความลึกมาตรฐาน</li>
+<li><b>ข้อควรระวัง:</b> ราคาที่คำนวณได้ควรสูงกว่าราคาที่ดินไม่มีทางเข้าออกในบริเวณนั้นร้อยละ 30 (ยกเว้นที่ดินไม่มีทางเข้าออกและทาง)</li>
+<li><b>ปัดเศษ (ข้อ 14):</b> หลักสิบปัดทีละ 5 · หลักร้อยทีละ 10 · หลักพันทีละ 50 · หลักหมื่นทีละ 500 · หลักแสนทีละ 5,000 · หลักล้านทีละ 50,000 (ปัดเข้าหาค่าที่ใกล้ที่สุด)</li></ul></details>
+<div class="grid"><div><div class="side-block"><div class="two-col">${fld('c7-p','ราคาประเมินที่ดินเป็นรายหน่วย (บาท/ตร.ว.)',10000)}${fld('c7-s','ความลึกมาตรฐาน (ม.)',40)}${fld('c7-d','ความลึกแปลงที่ดิน (ม.)',80)}${fld('c7-o','ราคาที่ดินไม่มีทางเข้าออกในบริเวณ (ถ้ามี)',0)}</div></div></div>
+<div><div class="result-headline"><div class="label">ราคาประเมินหลังปัดเศษ (บาท/ตร.ว.)</div><div class="value" id="c7-r">-</div></div><div id="c7-st"></div><table class="breakdown" id="c7-t" style="margin-top:14px"></table></div></div>`);
+function c7(){const p=num('c7-p'),K=num('c7-s'),D=num('c7-d'),o=num('c7-o'),t=tierOf(K,D),f=FACTORS[t],raw=p*f,fl=o*1.3,pre=Math.max(raw,fl);
+$('c7-r').textContent=fmt(rnd(pre));
+$('c7-st').innerHTML=st([['ช่วงที่',t],['ค่าตัวคูณ',(f*100).toFixed(2)+' %'],['ราคาก่อนปัดเศษ',fmt(raw)],...(o>0?[['ราคาขั้นต่ำ (ไม่มีทางเข้าออก × 1.3)',fmt(fl)]]:[]),['ปัดเศษทีละ',fmt(roundStep(pre))+' บาท']]);
+$('c7-t').innerHTML='<tr><th>ช่วงที่</th><th>ค่าตัวคูณ (%)</th><th>ความลึกแปลงไม่เกิน (ม.)</th></tr>'+[1,2,3,4,5,6,7].map(i=>`<tr${i===t?' class="merge-row"':''}><td>${i}</td><td>${(FACTORS[i]*100).toFixed(2)}</td><td>${i<7?fmt(K*(4*i+1)/4):'มากกว่า '+fmt(K*25/4)}</td></tr>`).join('')}
+wire('tab7',c7);
+
+/* --- tab8: รูปแปลง + ข้อจำกัด --- */
+const CS=[['แปลงทั่วไป ไม่มีข้อจำกัดพิเศษ',1,1,1,1],['ข้อ 4 ติดเชิงลาดสะพาน/แนวกั้นระวังอันตราย เข้าออกไม่ได้ (60%)',.6,1,1,1],['ข้อ 5.1 ที่ดินใช้ประโยชน์เป็นทาง/คลอง/ทางรถไฟ (50%)',.5,0,0,0],['ข้อ 5.2 แปลงตะเข็บมีเลขที่ดิน (50%)',.5,0,0,0],['ข้อ 10 ชั้นล่างเป็นทางเข้า-ออกแปลงด้านใน (100%)',1,0,0,0],['ข้อ 11 ใต้แนวสายไฟฟ้าแรงสูง (100%)',1,1,1,1],['ข้อ 12 แปลงเป็นบ่อหรือบึง (100%)',1,1,1,1],['ข้อ 13.1 จัดสรร: แปลงปกติ/ส่วนกลาง (100%)',1,0,0,1],['ข้อ 13.2 จัดสรร: แปลงใช้ประโยชน์เป็นทาง (50%)',.5,0,0,0],['ข้อ 13.3 จัดสรร: ทะเลสาบ (50%)',.5,0,0,0],['ข้อ 13.4 จัดสรร: ตะเข็บ (50%)',.5,0,0,0]];
+mkTab('tab8',SRC+`<details class="exp" open><summary>หลักเกณฑ์ที่ใช้ (ข้อ 3, 4, 5, 10-13)</summary><ul>
+<li><b>รูปแปลงปกติ (3.1):</b> ใช้ราคาที่คำนวณได้ ไม่ปรับลด · <b>รูปธง (3.2.1):</b> ทางเข้าออกกว้างกว่า 8 ม. = 100% · 2-8 ม. = 75% · ไม่เกิน 2 ม. = 65% ของราคาหลังคูณค่าตัวคูณความลึก</li>
+<li><b>สามเหลี่ยม (3.2.2):</b> ติดถนนมุมเดียว = 35% · มีด้านใดด้านหนึ่งติดถนน = 65%</li>
+<li><b>ข้อ 4:</b> ราคา = ราคาหน่วย × ค่าตัวคูณความลึก × ร้อยละรูปแปลง × 60% · <b>ข้อ 5, 13:</b> ทาง/คลอง/ทางรถไฟ/แปลงตะเข็บ/ทะเลสาบ ใช้ 50% ของราคาหน่วย ส่วนโครงการจัดสรรไม่คิดความลึก · <b>ข้อ 10-12:</b> ทางเข้าออกด้านใน ใต้สายไฟแรงสูง และบ่อ/บึง ใช้ 100%</li>
+<li>รูปธงที่เป็นทางเข้าออกของแปลงอื่นด้วย (ข้อ 3.2.1.4) ต้องกำหนดราคาเพิ่มเป็นรายกรณี ไม่รวมในเครื่องคำนวณนี้</li></ul></details>
+<div class="grid"><div><div class="side-block"><div class="two-col">${fld('c8-p','ราคาประเมินที่ดินเป็นรายหน่วย (บาท/ตร.ว.)',10000)}${fld('c8-s','ความลึกมาตรฐาน (ม.)',40)}${fld('c8-d','ความลึกแปลงที่ดิน (ม.)',40)}${fld('c8-o','ราคาที่ดินไม่มีทางเข้าออกในบริเวณ (ถ้ามี)',0)}</div>${sel('c8-sh','รูปแปลง',SHN,0)}<div style="height:12px"></div>${sel('c8-c','ลักษณะ/ข้อจำกัดการใช้ประโยชน์',CS.map(x=>x[0]),0)}<div style="height:12px"></div></div></div>
+<div><div class="result-headline"><div class="label">ราคาประเมินหลังปัดเศษ (บาท/ตร.ว.)</div><div class="value" id="c8-r">-</div></div><div id="c8-st"></div></div></div>`);
+function c8(){const c=CS[+$('c8-c').value],sh=SH[+$('c8-sh').value][1],f=FACTORS[tierOf(num('c8-s'),num('c8-d'))],o=num('c8-o');
+const raw=num('c8-p')*(c[2]?f:1)*(c[3]?sh:1)*c[1],fl=c[4]&&o>0?o*1.3:0,pre=Math.max(raw,fl);
+$('c8-r').textContent=fmt(rnd(pre));
+$('c8-st').innerHTML=st([['ค่าตัวคูณความลึก',c[2]?(f*100).toFixed(2)+' %':'ไม่ใช้'],['ร้อยละรูปแปลง',c[3]?(sh*100)+' %':'ไม่ใช้'],['อัตราตามข้อจำกัด',(c[1]*100)+' %'],['ราคาก่อนปัดเศษ',fmt(raw)],...(fl?[['ราคาขั้นต่ำ (ไม่มีทางเข้าออก × 1.3)',fmt(fl)]]:[])])}
+wire('tab8',c8);
+
+/* --- tab9: ติดถนนหลายด้าน ข้อ 6-7 --- */
+let n9=4;const s9=[[1000000,40,1505,0],[500000,40,1505,0],[500000,40,515,1],[400000,40,515,1]];
+mkTab('tab9',SRC+`<details class="exp" open><summary>หลักเกณฑ์ที่ใช้ (ข้อ 6 และ 7)</summary><ul>
+<li><b>ขั้นที่ 1:</b> แต่ละด้าน ราคา = ราคาหน่วยด้านนั้น × ค่าตัวคูณตามความลึกแปลง แล้วปัดเศษ</li>
+<li><b>ขั้นที่ 2 (อัตราส่วนระยะอิทธิพล):</b> จัดด้านที่อยู่ตรงข้ามกันเป็นกลุ่มเดียวกัน · ความลึกอิทธิพลของด้าน = (ราคาหน่วยด้านนั้น ÷ ผลรวมราคาหน่วยของกลุ่ม) × ความลึกแปลง · นำไปหาค่าตัวคูณ แล้วคูณราคาหน่วย · เฉลี่ยทุกด้านแล้วปัดเศษ (ด้านที่อยู่กลุ่มเดียวโดด ๆ จะคิดเท่าขั้นที่ 1)</li>
+<li><b>ผลสุดท้าย:</b> ใช้ราคาที่สูงที่สุดระหว่างขั้นที่ 1 และขั้นที่ 2 · ติดถนน 3 ด้านให้ใช้ขั้นที่ 2 โดยด้านที่ 3 คิดตามขั้นที่ 1 (จัดไว้กลุ่มของตัวเอง)</li>
+<li>ตัวอย่างเริ่มต้นในหน้านี้คือโจทย์ 4 ด้านในคู่มือ (ผลที่ควรได้ 410,000 บาท/ตร.ว.)</li></ul></details>
+<div class="grid"><div><div class="side-select" id="c9-n"><button data-n="2">2 ด้าน</button><button data-n="3">3 ด้าน</button><button data-n="4" class="active">4 ด้าน</button></div><div id="c9-b"></div></div>
+<div><div class="result-headline"><div class="label">ราคาประเมินสุดท้าย (บาท/ตร.ว.)</div><div class="value" id="c9-r">-</div><div class="via" id="c9-v"></div></div><div id="c9-st"></div><div class="tbl-wrap" style="margin-top:14px"><table class="breakdown" id="c9-t"></table></div></div></div>`);
+function r9(){$('c9-b').innerHTML=s9.slice(0,n9).map((s,i)=>`<div class="side-block"><h3>ด้านที่ ${i+1}</h3><div class="two-col">${fld('c9-p'+i,'ราคาหน่วยที่ดิน (บาท/ตร.ว.)',s[0])}${fld('c9-k'+i,'ความลึกมาตรฐาน (ม.)',s[1])}${fld('c9-d'+i,'ความลึกแปลง (ม.)',s[2])}${sel('c9-g'+i,'กลุ่ม (ด้านตรงข้ามอยู่กลุ่มเดียวกัน)',['กลุ่ม 1','กลุ่ม 2'],s[3])}</div></div>`).join('');c9()}
+function c9(){const S=[];for(let i=0;i<n9;i++){S.push({p:num('c9-p'+i),k:num('c9-k'+i),d:num('c9-d'+i),g:+$('c9-g'+i).value});s9[i]=[S[i].p,S[i].k,S[i].d,S[i].g]}
+const gs=[0,0];S.forEach(s=>gs[s.g]+=s.p);
+S.forEach(s=>{s.t1=tierOf(s.k,s.d);s.l1=rnd(s.p*FACTORS[s.t1]);s.di=gs[s.g]?s.p/gs[s.g]*s.d:0;s.t2=tierOf(s.k,s.di);s.v2=s.p*FACTORS[s.t2]});
+const a=Math.max(...S.map(s=>s.l1)),b=rnd(S.reduce((x,s)=>x+s.v2,0)/S.length),f=Math.max(a,b);
+$('c9-r').textContent=fmt(f);$('c9-v').textContent=f===a?'มาจากขั้นที่ 1 (ด้านที่ราคาสูงสุด)':'มาจากขั้นที่ 2 (อัตราส่วนระยะอิทธิพล)';
+$('c9-st').innerHTML=st([['ราคาขั้นที่ 1 (สูงสุดของแต่ละด้าน)',fmt(a)],['ราคาขั้นที่ 2 (เฉลี่ยแล้วปัดเศษ)',fmt(b)]]);
+$('c9-t').innerHTML='<tr><th>ด้าน</th><th>กลุ่ม</th><th>ระยะอิทธิพล (ม.)</th><th>ตัวคูณ</th><th>ขั้น 1</th><th>ขั้น 2</th></tr>'+S.map((s,i)=>`<tr><td>${i+1}</td><td>${s.g+1}</td><td>${fmt(s.di)}</td><td>${FACTORS[s.t2]}</td><td>${fmt(s.l1)}</td><td>${fmt(s.v2)}</td></tr>`).join('')}
+wire('tab9',c9);
+$('c9-n').addEventListener('click',e=>{const d=e.target.dataset.n;if(!d)return;n9=+d;[...$('c9-n').children].forEach(x=>x.classList.toggle('active',x===e.target));r9()});
+
+/* --- tab10: ถนนสองเส้นตัดผ่าน ข้อ 8 --- */
+mkTab('tab10',SRC+`<details class="exp" open><summary>หลักเกณฑ์ที่ใช้ (ข้อ 8)</summary><ul>
+<li>แปลงที่มีถนน 2 เส้นตัดผ่านแบ่งเป็น 3 ฝั่ง ให้คำนวณราคาแต่ละฝั่งตามความลึกของฝั่งนั้น แล้วเฉลี่ยทั้ง 3 ฝั่งเป็นราคาทั้งแปลง</li>
+<li>ราคาแต่ละฝั่ง = ราคาหน่วย × ค่าตัวคูณความลึก × ร้อยละรูปแปลง · ฝั่งที่ 2 (ระหว่างถนน) ให้ใช้ราคาที่สูงกว่าจากถนนด้านใดด้านหนึ่ง</li></ul></details>
+<div class="grid"><div><div class="side-block"><div class="two-col">${fld('c10-k','ความลึกมาตรฐาน (ม.)',40)}</div></div>
+<div class="side-block"><h3>ฝั่งที่ 1</h3><div class="two-col">${fld('c10-p1','ราคาหน่วย (บาท/ตร.ว.)',20000)}${fld('c10-d1','ความลึกแปลง (ม.)',40)}${fld('c10-h1','ร้อยละรูปแปลง (%)',100)}</div></div>
+<div class="side-block"><h3>ฝั่งที่ 2 (ระหว่างถนน)</h3><div class="two-col">${fld('c10-p2a','ราคาหน่วยถนน (1)',20000)}${fld('c10-p2b','ราคาหน่วยถนน (2)',20000)}${fld('c10-d2','ความลึกแปลง (ม.)',40)}${fld('c10-h2','ร้อยละรูปแปลง (%)',100)}</div></div>
+<div class="side-block"><h3>ฝั่งที่ 3</h3><div class="two-col">${fld('c10-p3','ราคาหน่วย (บาท/ตร.ว.)',20000)}${fld('c10-d3','ความลึกแปลง (ม.)',40)}${fld('c10-h3','ร้อยละรูปแปลง (%)',100)}</div></div></div>
+<div><div class="result-headline"><div class="label">ราคาประเมินทั้งแปลง (บาท/ตร.ว.)</div><div class="value" id="c10-r">-</div></div><div id="c10-st"></div></div></div>`);
+function c10(){const K=num('c10-k'),v=i=>{const p=i===2?Math.max(num('c10-p2a'),num('c10-p2b')):num('c10-p'+i);return p*FACTORS[tierOf(K,num('c10-d'+i))]*num('c10-h'+i)/100};
+const a=[1,2,3].map(v),m=a.reduce((x,y)=>x+y,0)/3;$('c10-r').textContent=fmt(rnd(m));
+$('c10-st').innerHTML=st([['ราคาฝั่งที่ 1',fmt(a[0])],['ราคาฝั่งที่ 2',fmt(a[1])],['ราคาฝั่งที่ 3',fmt(a[2])],['ค่าเฉลี่ยก่อนปัดเศษ',fmt(m)]])}
+wire('tab10',c10);
+
+/* --- tab11: ใช้ประโยชน์ร่วมกัน ข้อ 9 --- */
+const UC=['ข้อ 9.1 มีรั้ว/ลักษณะคล้ายรั้ว แสดงอาณาเขตชัดเจน (ประเมินเสมือนแปลงเดียว)','ข้อ 9.2.1 ไม่มีรั้ว เจ้าของกรรมสิทธิ์รายเดียวกัน (แปลงหลังไม่ติดถนน)','ข้อ 9.2.2 มีสิ่งปลูกสร้าง เจ้าของคนละราย แปลงหลังเข้าออกผ่านแปลงหน้า'];
+mkTab('tab11',SRC+`<details class="exp" open><summary>หลักเกณฑ์ที่ใช้ (ข้อ 9)</summary><ul>
+<li><b>9.1 มีรั้วหรือคล้ายรั้ว:</b> ประเมินเสมือนแปลงเดียว วัดความลึกรวมทั้งผืน ทุกแปลงได้ราคาเท่ากัน</li>
+<li><b>9.2.1 เจ้าของรายเดียวกัน ไม่มีรั้ว:</b> แต่ละแปลงวัดความลึกของตัวเองจากถนน · ถ้าแปลงหลังได้ราคาสูงกว่าแปลงหน้า ให้ใช้เท่าแปลงหน้า</li>
+<li><b>9.2.2 เจ้าของคนละราย:</b> แปลงหลังเข้าออกผ่านแปลงหน้า ให้ประเมินแปลงหลัง 60% ของแปลงหน้า</li>
+<li>ถ้าในกลุ่มมีแปลงติดถนนหลายแปลงที่ความลึกไม่เท่ากัน ให้ใช้ราคาที่ต่ำสุดของแปลงติดถนนเป็นแปลงหน้า</li></ul></details>
+<div class="grid"><div><div class="side-block"><div class="two-col">${fld('c11-p','ราคาประเมินที่ดินเป็นรายหน่วย (บาท/ตร.ว.)',10000)}${fld('c11-k','ความลึกมาตรฐาน (ม.)',40)}${fld('c11-f','ความลึกแปลงหน้า วัดจากถนน (ม.)',40)}${fld('c11-b','ความลึกแปลงหลัง/ทั้งผืน วัดจากถนน (ม.)',80)}</div>${sel('c11-sh','รูปแปลง',SHN,0)}<div style="height:12px"></div>${sel('c11-c','กรณีการใช้ประโยชน์ร่วมกัน',UC,0)}<div style="height:12px"></div></div></div>
+<div><div class="result-headline"><div class="label">ราคาประเมินแปลงหลัง (บาท/ตร.ว.)</div><div class="value" id="c11-r">-</div></div><div id="c11-st"></div></div></div>`);
+function c11(){const p=num('c11-p'),k=num('c11-k'),sh=SH[+$('c11-sh').value][1],c=+$('c11-c').value,g=d=>rnd(p*FACTORS[tierOf(k,d)]*sh);
+let fr,rr;if(c===0){fr=rr=g(num('c11-b'))}else{fr=g(num('c11-f'));rr=c===1?Math.min(fr,g(num('c11-b'))):rnd(fr*.6)}
+$('c11-r').textContent=fmt(rr);$('c11-st').innerHTML=st([['ราคาแปลงหน้า',fmt(fr)],['ราคาแปลงหลัง',fmt(rr)],['แปลงหลังเทียบแปลงหน้า',fr?(rr/fr*100).toFixed(2)+' %':'-']])}
+wire('tab11',c11);
+c7();c8();c10();c11();r9();
 
 /* ================= tabs switching ================= */
 function switchTab(id){
