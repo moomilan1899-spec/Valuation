@@ -2,250 +2,86 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>โปรแกรมคำนวณราคาประเมินที่ดิน</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --ink:#232920;
-    --paper:#FAF7F0;
-    --panel:#FFFFFF;
-    --line:#DCD5C3;
-    --forest:#22402F;
-    --forest-dark:#152A1E;
-    --brass:#B8912E;
-    --brass-light:#F3E7C6;
-    --rust:#A64C2E;
-    --muted:#6E6A5C;
-  }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-  body{
-    font-family:'Sarabun',sans-serif;
-    background:var(--paper);
-    color:var(--ink);
-    -webkit-font-smoothing:antialiased;
-  }
-  .wrap{max-width:1180px;margin:0 auto;padding:28px 20px 80px;}
-
-  /* header */
-  header.app-head{
-    border-bottom:3px double var(--forest);
-    padding-bottom:18px;
-    margin-bottom:26px;
-    display:flex;
-    align-items:flex-end;
-    justify-content:space-between;
-    gap:20px;
-    flex-wrap:wrap;
-  }
-  .brand{display:flex; align-items:center; gap:14px;}
-  .seal{width:52px;height:52px;flex:0 0 auto;}
-  .brand h1{
-    font-size:1.55rem;
-    margin:0;
-    color:var(--forest-dark);
-    font-weight:700;
-    letter-spacing:.2px;
-  }
-  .brand p{margin:2px 0 0; color:var(--muted); font-size:.92rem;}
-  .rai-badge{
-    font-size:.78rem;
-    color:var(--brass);
-    border:1px solid var(--brass);
-    padding:4px 10px;
-    border-radius:2px;
-    white-space:nowrap;
-  }
-
-  /* tabs */
-  .tabs{display:flex; gap:6px; margin-bottom:0; flex-wrap:wrap;}
-  .tab-btn{
-    font-family:inherit;
-    font-size:.98rem;
-    font-weight:600;
-    background:#EFE9DA;
-    color:var(--muted);
-    border:1px solid var(--line);
-    border-bottom:none;
-    padding:11px 20px;
-    border-radius:8px 8px 0 0;
-    cursor:pointer;
-    position:relative;
-    top:1px;
-  }
-  .tab-btn.active{
-    background:var(--panel);
-    color:var(--forest-dark);
-    border-color:var(--line);
-  }
-  .tab-panel{display:none;}
-  .tab-panel.active{display:block;}
-
-  .card{
-    background:var(--panel);
-    border:1px solid var(--line);
-    border-radius:0 8px 8px 8px;
-    padding:26px;
-  }
-
-  .grid{display:grid; grid-template-columns: 1.1fr 0.9fr; gap:26px;}
-  @media (max-width:860px){ .grid{grid-template-columns:1fr;} }
-
-  h2.section-title{
-    font-size:1.05rem;
-    margin:0 0 16px;
-    color:var(--forest-dark);
-    font-weight:700;
-    padding-bottom:8px;
-    border-bottom:1px solid var(--line);
-  }
-
-  .side-select{display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap;}
-  .side-select button{
-    font-family:inherit;
-    padding:8px 16px;
-    border-radius:20px;
-    border:1px solid var(--forest);
-    background:transparent;
-    color:var(--forest-dark);
-    font-weight:600;
-    cursor:pointer;
-    font-size:.9rem;
-  }
-  .side-select button.active{background:var(--forest); color:#fff;}
-
-  .side-block{
-    border:1px solid var(--line);
-    border-left:4px solid var(--brass);
-    border-radius:4px;
-    padding:14px 16px 4px;
-    margin-bottom:16px;
-    background:#FCFAF4;
-  }
-  .side-block h3{margin:0 0 10px; font-size:.92rem; color:var(--forest-dark); font-weight:600;}
-
-  .field-row{display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:12px;}
-  .field label{
-    display:block;
-    font-size:.8rem;
-    color:var(--muted);
-    margin-bottom:4px;
-  }
-  .field input{
-    width:100%;
-    font-family:inherit;
-    font-size:.95rem;
-    padding:8px 10px;
-    border:1px solid var(--line);
-    border-radius:4px;
-    background:#fff;
-    color:var(--ink);
-  }
-  .field input:focus{outline:2px solid var(--brass); outline-offset:0; border-color:var(--brass);}
-
-  select.field-select{
-    width:100%;
-    font-family:inherit;
-    font-size:.95rem;
-    padding:8px 10px;
-    border:1px solid var(--line);
-    border-radius:4px;
-    background:#fff;
-    color:var(--ink);
-  }
-
-  /* results */
-  .result-headline{
-    background:var(--forest-dark);
-    color:#fff;
-    border-radius:6px;
-    padding:22px 22px 18px;
-    margin-bottom:16px;
-  }
-  .result-headline .label{font-size:.82rem; opacity:.75; margin-bottom:4px;}
-  .result-headline .value{font-size:2.1rem; font-weight:700; color:#F3E7C6; line-height:1.2;}
-  .result-headline .unit{font-size:.95rem; font-weight:400; opacity:.85; margin-left:6px;}
-  .result-headline .via{font-size:.8rem; opacity:.7; margin-top:6px;}
-
-  table.breakdown{width:100%; border-collapse:collapse; font-size:.86rem; margin-bottom:14px;}
-  table.breakdown th, table.breakdown td{
-    padding:7px 8px;
-    border-bottom:1px solid var(--line);
-    text-align:right;
-  }
-  table.breakdown th:first-child, table.breakdown td:first-child{text-align:left;}
-  table.breakdown th{color:var(--muted); font-weight:600; font-size:.78rem;}
-  table.breakdown tr.merge-row td{font-weight:700; background:var(--brass-light);}
-
-  .note{font-size:.8rem; color:var(--muted); line-height:1.6; margin-top:10px; padding-top:10px; border-top:1px dashed var(--line);}
-
-  .carry-btn{
-    margin-top:10px;
-    font-family:inherit;
-    font-size:.85rem;
-    font-weight:600;
-    background:var(--brass);
-    color:#2b2107;
-    border:none;
-    padding:9px 16px;
-    border-radius:5px;
-    cursor:pointer;
-  }
-  .carry-btn:hover{background:#a37f26;}
-
-  /* full appraisal form specific */
-  .two-col{display:grid; grid-template-columns:1fr 1fr; gap:12px 16px;}
-  @media (max-width:560px){ .two-col{grid-template-columns:1fr;} }
-
-  .final-price{
-    text-align:center;
-    padding:20px;
-    background:var(--brass-light);
-    border-radius:6px;
-    margin-bottom:14px;
-  }
-  .final-price .amount{font-size:2.3rem; font-weight:700; color:var(--forest-dark);}
-  .final-price .per{font-size:.9rem; color:var(--muted);}
-
-  .stat-line{display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--line); font-size:.9rem;}
-  .stat-line span:first-child{color:var(--muted);}
-  .stat-line span:last-child{font-weight:600;}
-
-  footer.foot{margin-top:30px; font-size:.78rem; color:var(--muted); text-align:center;}
-
-  .result-headline.warn{background:var(--rust);}
-  .result-headline.warn .value{color:#fff;}
-  .note.warn-text{color:var(--rust); font-weight:600; border-top:none; padding-top:0;}
-  .note.ok-text{color:var(--forest-dark); font-weight:600; border-top:none; padding-top:0;}
+:root{--paper:#F3F6F2;--panel:#fff;--soft:#F7F9F6;--ink:#16211A;--muted:#64726A;--line:#E1E8E1;--forest:#1F6B48;--forest-dark:#12382A;--hero:linear-gradient(135deg,#12382A,#1F6B48);--brass:#C99A2E;--brass-light:#FBF2D9;--rust:#C0392B;--shadow:0 1px 2px rgba(20,40,30,.06),0 8px 24px rgba(20,40,30,.06);color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#0E1411;--panel:#17201B;--soft:#1C2721;--ink:#E7EEE9;--muted:#93A399;--line:#2A372F;--forest:#2F9468;--forest-dark:#0F3326;--hero:linear-gradient(135deg,#0F3326,#2A7D58);--brass:#E0B450;--brass-light:#2B2616;--rust:#E5675A;--shadow:0 1px 2px rgba(0,0,0,.4);color-scheme:dark;}}
+:root[data-theme="dark"]{--paper:#0E1411;--panel:#17201B;--soft:#1C2721;--ink:#E7EEE9;--muted:#93A399;--line:#2A372F;--forest:#2F9468;--forest-dark:#0F3326;--hero:linear-gradient(135deg,#0F3326,#2A7D58);--brass:#E0B450;--brass-light:#2B2616;--rust:#E5675A;--shadow:0 1px 2px rgba(0,0,0,.4);color-scheme:dark;}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}*{box-sizing:border-box}
+body{margin:0;font-family:'IBM Plex Sans Thai','Sarabun',system-ui,sans-serif;background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--panel);z-index:11}
+.shell{display:flex;min-height:100vh}
+.side{width:290px;flex:none;background:var(--panel);border-right:1px solid var(--line);padding:24px 16px;position:sticky;top:0;height:100vh;overflow:auto}
+.logo{display:flex;gap:12px;align-items:center;margin-bottom:22px}.logo svg{width:42px;height:42px}.logo b{display:block;font-size:1.02rem}.logo small{color:var(--muted);font-size:.75rem}
+.grp{font-size:.72rem;color:var(--muted);font-weight:600;margin:20px 8px 8px}
+.tab-btn{display:flex;align-items:center;gap:10px;width:100%;text-align:left;font:inherit;font-size:.9rem;font-weight:500;color:var(--ink);background:none;border:0;border-radius:12px;padding:10px 12px;cursor:pointer;transition:.15s}
+.tab-btn::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--line);flex:none}
+.tab-btn:hover{background:var(--soft)}.tab-btn.active{background:var(--forest);color:#fff;box-shadow:var(--shadow)}.tab-btn.active::before{background:#FFE7A3}
+.main{flex:1;min-width:0;padding:28px clamp(16px,3vw,40px) 60px;max-width:1240px}
+.topbar{margin-bottom:18px}.topbar small{color:var(--brass);font-weight:600;font-size:.8rem}.topbar h1{margin:2px 0 0;font-size:1.6rem;letter-spacing:-.01em}
+.tab-panel{display:none}.tab-panel.active{display:block;animation:in .25s}@keyframes in{from{opacity:0;transform:translateY(6px)}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:26px;box-shadow:var(--shadow)}
+.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:28px}
+h2.section-title{font-size:.8rem;margin:0 0 14px;color:var(--muted);font-weight:600}
+.side-select{display:flex;gap:4px;margin-bottom:18px;flex-wrap:wrap;background:var(--soft);padding:4px;border-radius:12px;width:fit-content}
+.side-select button{font:inherit;font-size:.88rem;font-weight:600;border:0;background:none;color:var(--muted);padding:7px 16px;border-radius:9px;cursor:pointer}
+.side-select button.active{background:var(--panel);color:var(--forest);box-shadow:var(--shadow)}
+.side-block{background:var(--soft);border:1px solid var(--line);border-radius:16px;padding:16px 16px 6px;margin-bottom:14px}
+.side-block h3{margin:0 0 12px;font-size:.92rem;font-weight:600}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px;margin-bottom:12px}
+.field label{display:block;font-size:.76rem;color:var(--muted);margin-bottom:5px;font-weight:500}
+.field input,.field-select,.dt input,.dt select{width:100%;font:inherit;font-size:.92rem;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);transition:.15s}
+input:focus,select:focus{outline:0;border-color:var(--forest);box-shadow:0 0 0 3px color-mix(in srgb,var(--forest) 22%,transparent)}
+.result-headline{background:var(--hero);color:#fff;border-radius:18px;padding:22px;margin-bottom:16px;position:relative;overflow:hidden}
+.result-headline::after{content:"";position:absolute;right:-30px;top:-30px;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.07)}
+.result-headline .label{font-size:.8rem;opacity:.8}.result-headline .value{font-size:2.3rem;font-weight:700;color:#FFE7A3;line-height:1.2;margin:2px 0}.result-headline .via{font-size:.78rem;opacity:.75}
+.result-headline.warn{background:linear-gradient(135deg,#8E2418,#C0392B)}.result-headline.warn .value{color:#fff}
+table.breakdown{width:100%;border-collapse:collapse;font-size:.85rem;margin-bottom:14px}
+.breakdown th,.breakdown td{padding:9px 8px;border-bottom:1px solid var(--line);text-align:right}.breakdown th:first-child,.breakdown td:first-child{text-align:left}
+.breakdown th{color:var(--muted);font-size:.74rem;font-weight:600}.breakdown tr.merge-row td{font-weight:700;background:var(--brass-light)}
+.note{font-size:.8rem;color:var(--muted);line-height:1.65;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+.note.warn-text{color:var(--rust);font-weight:600;border:0;padding-top:0}.note.ok-text{color:var(--forest);font-weight:600;border:0;padding-top:0}
+.carry-btn{font:inherit;font-size:.86rem;font-weight:600;background:var(--brass);color:#2b2107;border:0;padding:10px 18px;border-radius:12px;cursor:pointer;margin-top:8px;transition:.15s}.carry-btn:hover{filter:brightness(.93);transform:translateY(-1px)}
+.final-price{text-align:center;padding:22px;background:var(--hero);border-radius:18px;margin-bottom:14px;color:#fff}.final-price .amount{font-size:2.4rem;font-weight:700;color:#FFE7A3}.final-price .per{font-size:.85rem;opacity:.8}
+.stat-line{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:.88rem}.stat-line span:first-child{color:var(--muted)}.stat-line span:last-child{font-weight:600;text-align:right}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;margin-bottom:12px}
+.dt{border-collapse:collapse;font-size:.82rem;min-width:100%}
+.dt th{background:var(--soft);color:var(--muted);font-weight:600;font-size:.72rem;padding:10px 8px;min-width:84px;text-align:center}
+.dt td{padding:5px 4px;border-top:1px solid var(--line);white-space:nowrap}
+.dt td.o{text-align:right;padding:5px 10px;background:var(--soft)}.dt th.o{background:var(--brass-light);color:var(--ink)}.dt td.hi{font-weight:700;color:var(--forest)}
+.dt input,.dt select{min-width:84px;padding:7px 8px;font-size:.84rem}.dt select{min-width:180px}
+.x{border:0;background:none;color:var(--rust);cursor:pointer;font-size:1rem;padding:4px 8px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:16px 0}
+.kpi{background:var(--soft);border:1px solid var(--line);border-radius:16px;padding:14px 16px}.kpi span{display:block;font-size:.74rem;color:var(--muted)}.kpi b{font-size:1.3rem}
+.kpi.hi{background:var(--hero);color:#fff;border:0}.kpi.hi span{color:rgba(255,255,255,.8)}.kpi.hi b{color:#FFE7A3}
+.lead{color:var(--muted);font-size:.86rem;line-height:1.6;margin:0 0 16px}
+footer.foot{margin-top:28px;font-size:.76rem;color:var(--muted);text-align:center}
+@media(max-width:900px){.shell{flex-direction:column}.side{width:auto;height:auto;top:env(safe-area-inset-top,0px);z-index:10;display:flex;gap:6px;overflow-x:auto;padding:10px 12px;border-right:0;border-bottom:1px solid var(--line);align-items:center}.logo,.grp{display:none}.tab-btn{width:auto;white-space:nowrap;flex:none}.grid{grid-template-columns:1fr}.main{padding-top:18px}.card{padding:18px}}
+@media(max-width:560px){.two-col,.field-row{grid-template-columns:1fr}}
+.topbar{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}.exp{display:flex;gap:8px}.exp[hidden]{display:none}
+.ex{font:inherit;font-size:.84rem;font-weight:600;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:9px 16px;border-radius:12px;cursor:pointer;transition:.15s}.ex:hover{border-color:var(--forest);color:var(--forest)}.ex:disabled{opacity:.5;cursor:wait}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--forest-dark);color:#fff;padding:10px 18px;border-radius:12px;font-size:.85rem;display:none;z-index:20}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
-<div class="wrap">
-
-  <header class="app-head">
-    <div class="brand">
-      <svg class="seal" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="26" cy="26" r="24" stroke="#22402F" stroke-width="2"/>
-        <circle cx="26" cy="26" r="18" stroke="#B8912E" stroke-width="1.2"/>
-        <path d="M26 10 L26 42 M10 26 L42 26 M15 15 L37 37 M37 15 L15 37" stroke="#22402F" stroke-width="1"/>
-        <circle cx="26" cy="26" r="3.2" fill="#B8912E"/>
-      </svg>
-      <div>
-        <h1>โปรแกรมคำนวณราคาประเมินที่ดิน</h1>
-        <p>คำนวณราคาถนนแบบเส้น / ปัจจัยอิทธิพล และสรุปราคาประเมินตามรูปแปลง</p>
-      </div>
-    </div>
-    <div class="rai-badge">อ้างอิงสูตรจากไฟล์ต้นฉบับ</div>
-  </header>
-
-  <div class="tabs">
-    <button class="tab-btn active" data-tab="tab1">คำนวณราคา (ถนนหลายด้าน)</button>
-    <button class="tab-btn" data-tab="tab2">คำนวณราคา (ถนนผ่ากลาง)</button>
-    <button class="tab-btn" data-tab="tab3">โปรแกรมคำนวณราคาประเมิน</button>
-    <button class="tab-btn" data-tab="tab4">คำนวณเนื้อที่แปลงกับทะเบียน</button>
-  </div>
+<div class="shell"><aside class="side">
+<div class="logo"><svg viewBox="0 0 42 42"><rect width="42" height="42" rx="12" fill="#1F6B48"/><circle cx="21" cy="21" r="12" fill="none" stroke="#FFE7A3" stroke-width="1.5"/><path d="M21 7v28M7 21h28" stroke="#FFE7A3" stroke-width="1.5"/><circle cx="21" cy="21" r="3" fill="#FFE7A3"/></svg><div><b>ประเมินราคาที่ดิน</b><small>Land Appraisal Suite</small></div></div>
+<div class="grp">หมวดคำนวณราคาแปลงที่ดิน</div>
+<button class="tab-btn" data-tab="tab1" data-cat="คำนวณราคาแปลงที่ดิน">คำนวณราคา (ถนนหลายด้าน)</button>
+<button class="tab-btn" data-tab="tab2" data-cat="คำนวณราคาแปลงที่ดิน">คำนวณราคา (ถนนผ่ากลาง)</button>
+<button class="tab-btn" data-tab="tab3" data-cat="คำนวณราคาแปลงที่ดิน">โปรแกรมคำนวณราคาประเมิน</button>
+<button class="tab-btn" data-tab="tab4" data-cat="คำนวณราคาแปลงที่ดิน">คำนวณเนื้อที่แปลงกับทะเบียน</button>
+<div class="grp">หมวดที่ราชพัสดุและบัญชีแนบท้าย</div>
+<button class="tab-btn" data-tab="tab5" data-cat="ที่ราชพัสดุและบัญชีแนบท้าย">ที่ดินจากบัญชีแนบท้าย</button>
+<button class="tab-btn" data-tab="tab6" data-cat="ที่ราชพัสดุและบัญชีแนบท้าย">ที่ราชพัสดุแปลงใหญ่</button>
+</aside><main class="main"><div class="topbar"><div><small id="pageCat"></small><h1 id="pageTitle"></h1></div><div class="exp" id="exp" hidden><button class="ex" id="ex-pdf" type="button">ส่งออก PDF</button><button class="ex" id="ex-xlsx" type="button">ส่งออก Excel</button></div></div><div id="toast"></div>
 
   <!-- ================= TAB 1: ถนนหลายด้าน ================= -->
   <section class="tab-panel active card" id="tab1">
@@ -422,8 +258,25 @@
     </div>
   </section>
 
-  <footer class="foot">เครื่องมือนี้จัดทำจากสูตรในไฟล์ต้นฉบับของผู้ใช้ ใช้เพื่อประกอบการพิจารณาเท่านั้น</footer>
-</div>
+  <section class="tab-panel card" id="tab5">
+<p class="lead">กรอกข้อมูลแต่ละแปลงเป็นแถว ระบบคำนวณราคาประเมินต่อ ตร.ว. และทั้งแปลงให้อัตโนมัติ (ข้อมูลจะถูกจำไว้ในเบราว์เซอร์) — ช่องที่ต้องกรอก: เนื้อที่, มูลค่าถนน, ความลึก, ประเภทรูปแปลง, ราคาหน่วยที่ดินไม่มีทางเข้าออก</p>
+<div class="tbl-wrap"><table class="dt" id="t5"></table></div>
+<button class="carry-btn" id="add5" type="button">+ เพิ่มแปลง</button>
+<div class="kpis" id="k5"></div>
+<div class="note">ตามสูตรไฟล์ต้นฉบับ: ราคาก่อนปัด = ปรับลดระยะ × ปรับลดรูปแปลง × มูลค่าถนน (ไม่ต่ำกว่าราคาตาดีต่ำสุด = ราคาหน่วยที่ดินไม่มีทางเข้าออก × 1.3) · ถ้าปรับลดรูปแปลง = 0 ใช้ราคาหน่วยที่ดินไม่มีทางเข้าออก · ปัดเศษแบบ MROUND ตามช่วงราคา · ในตารางนี้ไม่ได้จำกัดราคาไม่ให้เกินมูลค่าถนน</div></section>
+<section class="tab-panel card" id="tab6">
+<p class="lead">โปรแกรมคำนวณราคาประเมินที่ราชพัสดุแปลงใหญ่และครอบคลุมพื้นที่มากกว่าหนึ่งตำบล ที่มีเอกสารสิทธิประเภทอื่นนอกเหนือจากโฉนดที่ดินหรือ น.ส. 3 ก.</p>
+<div class="side-block"><div class="two-col">
+<div class="field"><label>ที่ราชพัสดุ (เลขทะเบียน)</label><input type="text" id="t6-name"></div>
+<div class="field"><label>ไร่</label><input type="number" id="t6-rai" step="any"></div>
+<div class="field"><label>งาน</label><input type="number" id="t6-ngan" step="any"></div>
+<div class="field"><label>วา</label><input type="number" id="t6-wa" step="any"></div></div></div>
+<h2 class="section-title">ราคาประเมินของหน่วยที่ดินที่ติดและอยู่ภายในแปลงที่ราชพัสดุ (บ./ตร.ว.)</h2>
+<div class="tbl-wrap"><table class="dt" id="t6"></table></div>
+<button class="carry-btn" id="add6" type="button">+ เพิ่มเทศบาล/ตำบล</button>
+<div class="kpis" id="k6"></div>
+<div class="note">ค่าเฉลี่ย = เฉลี่ยทุกช่องที่กรอกในตาราง (ช่องว่างไม่นับ) แล้วปัดเศษแบบ MROUND · ราคาทั้งแปลง = ราคาประเมิน × เนื้อที่ (ไร่×400 + งาน×100 + วา)</div></section>
+<footer class="foot">เครื่องมือนี้จัดทำจากสูตรในไฟล์ต้นฉบับของผู้ใช้ ใช้เพื่อประกอบการพิจารณาเท่านั้น</footer></main></div>
 
 <script>
 /* ---------- shared math ---------- */
@@ -752,10 +605,143 @@ function calcTab4(){
   document.getElementById(id).addEventListener('input', calcTab4);
 });
 
+/* ================= TAB 5 : บัญชีแนบท้าย ================= */
+const SHAPES=Object.keys(SHAPE_FACTORS);
+const C5=[['loc','ระวางภูมิประเทศ','t'],['utm','ระวาง UTM','t'],['sheet','แผ่น','t'],['scale','มาตราส่วน','t'],['no','เลขที่ดิน','t'],['rai','ไร่','n'],['ngan','งาน','n'],['wa','ตารางวา','n'],['road','มูลค่าถนน','n'],['std','ความลึกมาตรฐาน (ม.)','n'],['depth','ความลึกแปลง (ม.)','n'],['shape','ประเภทรูปแปลง','s'],['outer','ราคาหน่วยที่ดินไม่มีทางเข้าออก','n']];
+const O5=[['area','รวม (ตร.ว.)'],['floor','ราคาตาดีต่ำสุด'],['sf','ปรับลดรูปแปลง'],['tier','ระยะความลึก'],['df','ปรับลดระยะ'],['calc','คำนวณราคา'],['pre','ราคาก่อนปัดเลขกลม'],['price','ราคาประเมิน (บ./ตร.ว.)'],['total','ราคาทั้งแปลง (บาท)']];
+const blank5=()=>({loc:'',utm:'',sheet:'',scale:'',no:'',rai:'',ngan:'',wa:'',road:'',std:'',depth:'',shape:'รูปแปลงที่ดินปกติ',outer:''});
+let rows5=[{loc:'4923IV',utm:'5618',sheet:'15',scale:'1000',no:'580',rai:'1',ngan:'0',wa:'13.6',road:'1000',std:'60',depth:'136',shape:'แปลงที่ดินใช้ประโยชน์เป็นทาง',outer:'100'}];
+const B6C=['ทางหลวงแผ่นดิน','ทางหลวงชนบท','ทะเล','แม่น้ำ','คลอง','ซอยทาง'];
+let b6={name:'นม1873',rai:'131745',ngan:'1',wa:'5',rows:[['เทศบาล/ตำบล 1',['','250','','','','150']],['เทศบาล/ตำบล 2',['','200','','','','150']],['เทศบาล/ตำบล 3',['','','','','','125']],['เทศบาล/ตำบล 4',['','250','','','','150']]].concat([5,6,7,8,9,10].map(n=>['เทศบาล/ตำบล '+n,['','','','','','']])).map(r=>({n:r[0],v:r[1]}))};
+function save(){try{localStorage.setItem('landapp1',JSON.stringify({rows5,b6}))}catch(e){}}
+try{const s=JSON.parse(localStorage.getItem('landapp1')||'null');if(s&&Array.isArray(s.rows5)&&s.b6&&Array.isArray(s.b6.rows)){rows5=s.rows5;b6=s.b6}}catch(e){}
+
+function calc5(r){
+  const n=k=>parseFloat(r[k])||0;
+  const area=n('rai')*400+n('ngan')*100+n('wa'),outer=n('outer'),road=n('road');
+  const floor=outer*1.3,sf=SHAPE_FACTORS[r.shape]??1,tier=tierOf(n('std'),n('depth'));
+  const df=r.shape==='แปลงที่ดินใช้ประโยชน์เป็นทาง'?1:FACTORS[tier];
+  const v=df*sf*road,calc=v<floor?floor:v,pre=sf===0?outer:calc,price=mround(pre,roundStep(pre));
+  return {area,floor,sf,tier,df,calc,pre,price,total:price*area};
+}
+function render5(){
+  document.getElementById('t5').innerHTML='<thead><tr><th>#</th>'+C5.map(c=>`<th>${c[1]}</th>`).join('')+O5.map(c=>`<th class="o">${c[1]}</th>`).join('')+'<th></th></tr></thead><tbody>'+
+  rows5.map((r,i)=>`<tr><td>${i+1}</td>`+C5.map(c=>c[2]==='s'
+    ?`<td><select data-i="${i}" data-k="${c[0]}">${SHAPES.map(s=>`<option${s===r.shape?' selected':''}>${s}</option>`).join('')}</select></td>`
+    :`<td><input type="${c[2]==='n'?'number':'text'}" step="any" data-i="${i}" data-k="${c[0]}" value="${r[c[0]]}"></td>`).join('')
+  +O5.map(c=>`<td class="o${c[0]==='price'||c[0]==='total'?' hi':''}" data-o="${c[0]}"></td>`).join('')
+  +`<td><button class="x" data-del="${i}" title="ลบแถว">✕</button></td></tr>`).join('')+'</tbody>';
+  upd5();
+}
+function upd5(){
+  const trs=document.querySelectorAll('#t5 tbody tr');let A=0,T=0;
+  rows5.forEach((r,i)=>{
+    const o=calc5(r);A+=o.area;T+=o.total;
+    const set=(k,v)=>{trs[i].querySelector(`[data-o="${k}"]`).textContent=v};
+    set('area',fmt(o.area));set('floor',fmt(o.floor));set('sf',o.sf);set('tier',o.tier);set('df',o.df);
+    set('calc',fmt(o.calc));set('pre',fmt(o.pre));set('price',fmt(o.price));set('total',fmt(o.total));
+  });
+  document.getElementById('k5').innerHTML=`<div class="kpi"><span>จำนวนแปลง</span><b>${rows5.length}</b></div><div class="kpi"><span>เนื้อที่รวม (ตร.ว.)</span><b>${fmt(A)}</b></div><div class="kpi hi"><span>ราคาประเมินรวมทุกแปลง (บาท)</span><b>${fmt(T)}</b></div>`;
+  save();
+}
+const t5=document.getElementById('t5');
+t5.addEventListener('input',e=>{const k=e.target.dataset.k;if(!k)return;rows5[+e.target.dataset.i][k]=e.target.value;upd5()});
+t5.addEventListener('click',e=>{const d=e.target.dataset.del;if(d===undefined)return;rows5.splice(+d,1);if(!rows5.length)rows5.push(blank5());render5()});
+document.getElementById('add5').onclick=()=>{rows5.push(blank5());render5()};
+
+/* ================= TAB 6 : ที่ราชพัสดุแปลงใหญ่ ================= */
+function render6(){
+  document.getElementById('t6').innerHTML='<thead><tr><th>เทศบาล/ตำบล</th>'+B6C.map(c=>`<th>${c}</th>`).join('')+'<th class="o">ราคาเฉลี่ยของหน่วยที่ดิน</th><th></th></tr></thead><tbody>'+
+  b6.rows.map((r,i)=>`<tr><td><input type="text" data-i="${i}" data-n="1" value="${r.n}"></td>`+r.v.map((v,j)=>`<td><input type="number" step="any" data-i="${i}" data-j="${j}" value="${v}"></td>`).join('')+`<td class="o hi" data-avg="${i}"></td><td><button class="x" data-del="${i}" title="ลบแถว">✕</button></td></tr>`).join('')+'</tbody>';
+  upd6();
+}
+function upd6(){
+  const num=v=>(v===''||isNaN(parseFloat(v)))?null:parseFloat(v),sum=a=>a.reduce((s,x)=>s+x,0),all=[];
+  b6.rows.forEach((r,i)=>{const a=r.v.map(num).filter(x=>x!==null);all.push(...a);document.querySelector(`[data-avg="${i}"]`).textContent=a.length?fmt(sum(a)/a.length):'-'});
+  const avg=all.length?sum(all)/all.length:null,price=avg===null?null:mround(avg,roundStep(avg));
+  const area=(+b6.rai||0)*400+(+b6.ngan||0)*100+(+b6.wa||0);
+  document.getElementById('k6').innerHTML=`<div class="kpi"><span>ค่าเฉลี่ยทุกช่องที่กรอก (บ./ตร.ว.)</span><b>${fmt(avg)}</b></div><div class="kpi"><span>ราคาประเมินแปลง (บ./ตร.ว.)</span><b>${fmt(price)}</b></div><div class="kpi"><span>เนื้อที่ (ตร.ว.)</span><b>${fmt(area)}</b></div><div class="kpi hi"><span>ราคาประเมินทั้งแปลง (บาท)</span><b>${price===null?'-':fmt(price*area)}</b></div>`;
+  save();
+}
+const t6=document.getElementById('t6');
+t6.addEventListener('input',e=>{const d=e.target.dataset,r=b6.rows[+d.i];if(!r)return;if(d.n)r.n=e.target.value;else r.v[+d.j]=e.target.value;upd6()});
+t6.addEventListener('click',e=>{const d=e.target.dataset.del;if(d===undefined)return;b6.rows.splice(+d,1);render6()});
+document.getElementById('add6').onclick=()=>{b6.rows.push({n:'เทศบาล/ตำบล '+(b6.rows.length+1),v:['','','','','','']});render6()};
+['name','rai','ngan','wa'].forEach(k=>{const el=document.getElementById('t6-'+k);el.value=b6[k];el.addEventListener('input',()=>{b6[k]=el.value;upd6()})});
+
+/* ================= EXPORT PDF / EXCEL ================= */
+let DL=null;
+(async()=>{try{DL=window.claude&&await window.claude.use('downloads')}catch(e){}if(DL)document.getElementById('exp').hidden=false})();
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.display='none',3500)}
+function scrape(id){
+  const p=document.getElementById(id),B=[],T=s=>s.replace(/\s+/g,' ').trim();
+  const val=el=>el.tagName==='SELECT'?el.options[el.selectedIndex].text:el.value;
+  p.querySelectorAll('.side-block').forEach(sb=>{
+    const h=sb.querySelector('h3'),rows=[];
+    sb.querySelectorAll('.field').forEach(f=>{const l=f.querySelector('label'),i=f.querySelector('input,select');if(l&&i)rows.push([T(l.textContent),val(i)])});
+    if(rows.length)B.push({h:h?T(h.childNodes[0].textContent):'ข้อมูล',rows});
+  });
+  p.querySelectorAll('table.dt').forEach(t=>B.push({h:'ตารางข้อมูล',hdr:1,rows:[...t.rows].map(tr=>[...tr.cells].map(c=>{const i=c.querySelector('input,select');return i?val(i):T(c.textContent)}).slice(0,-1))}));
+  const r=[];
+  p.querySelectorAll('.result-headline,.final-price').forEach(x=>{
+    const v=x.querySelector('.value,.amount'),l=x.querySelector('.label');
+    if(v)r.push([x.classList.contains('final-price')?'ราคาประเมิน (บาท/ตร.ว.)':(l?T(l.textContent):'ผลลัพธ์'),T(v.textContent)]);
+    const via=x.querySelector('.via');if(via&&via.textContent)r.push(['ที่มา',T(via.textContent)]);
+  });
+  p.querySelectorAll('.stat-line').forEach(x=>r.push([T(x.children[0].textContent),T(x.children[1].textContent)]));
+  p.querySelectorAll('.kpi').forEach(x=>r.push([T(x.querySelector('span').textContent),T(x.querySelector('b').textContent)]));
+  const vd=p.querySelector('#t4-verdict');if(vd&&vd.textContent)r.push(['สรุป',T(vd.textContent)]);
+  if(r.length)B.push({h:'ผลการคำนวณ',rows:r});
+  p.querySelectorAll('table.breakdown').forEach(t=>B.push({h:'รายละเอียดการคำนวณ',hdr:1,rows:[...t.rows].map(tr=>{const o=[];[...tr.cells].forEach(c=>{o.push(T(c.textContent));for(let k=1;k<c.colSpan;k++)o.push('')});return o})}));
+  return B;
+}
+function rptHTML(d){
+  const E=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  return `<div style="font-family:'IBM Plex Sans Thai','Sarabun',sans-serif;color:#16211A;background:#fff;padding:36px"><div style="border-bottom:3px double #1F6B48;padding-bottom:10px;margin-bottom:14px"><div style="font-size:12px;color:#C99A2E;font-weight:600">${E(d.cat)}</div><div style="font-size:22px;font-weight:700;color:#12382A">${E(d.title)}</div><div style="font-size:12px;color:#64726A">วันที่ออกรายงาน ${d.date}</div></div>`+
+  d.blocks.map(b=>`<div style="font-size:14px;font-weight:600;margin:16px 0 6px;color:#1F6B48">${E(b.h)}</div><table style="width:100%;border-collapse:collapse;font-size:12px">`+b.rows.map((r,i)=>'<tr>'+r.map((c,j)=>`<td style="border:1px solid #DDE5DD;padding:5px 7px;${b.hdr&&!i?'background:#F1F5F1;font-weight:600;':''}${!b.hdr&&!j?'color:#64726A;width:45%;':''}">${E(c)}</td>`).join('')+'</tr>').join('')+'</table>').join('')+'</div>';
+}
+async function doExport(kind){
+  const id=document.querySelector('.tab-panel.active').id;
+  const d={title:document.getElementById('pageTitle').textContent,cat:document.getElementById('pageCat').textContent,date:new Date().toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'}),blocks:scrape(id)};
+  const name=d.title.replace(/[\\/:*?"<>|]/g,'')+'_'+new Date().toISOString().slice(0,10)+'.'+kind;
+  try{
+    let data;
+    if(kind==='xlsx'){
+      const num=v=>/^-?\d[\d,]*(\.\d+)?$/.test(v)&&!/^0\d/.test(v)?parseFloat(v.replace(/,/g,'')):v;
+      const aoa=[[d.title],[d.cat],['วันที่ '+d.date],[]];
+      d.blocks.forEach(b=>{aoa.push([b.h]);b.rows.forEach(r=>aoa.push(r.map(num)));aoa.push([])});
+      const ws=XLSX.utils.aoa_to_sheet(aoa),w=Math.max(...aoa.map(r=>r.length));
+      ws['!cols']=Array.from({length:w},(_,i)=>({wch:i?18:30}));
+      const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'ผลคำนวณ');
+      data=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+    }else{
+      const wide=Math.max(...d.blocks.map(b=>b.rows[0].length))>8;
+      const el=document.createElement('div');
+      el.style.cssText='position:absolute;left:-99999px;top:0;background:#fff;width:'+(wide?1123:794)+'px';
+      el.innerHTML=rptHTML(d);document.body.appendChild(el);
+      try{
+        await document.fonts.ready;
+        const cv=await html2canvas(el,{scale:2,backgroundColor:'#ffffff'});
+        const pdf=new window.jspdf.jsPDF({orientation:wide?'l':'p',unit:'pt',format:'a4'});
+        const pw=pdf.internal.pageSize.getWidth(),ph=pdf.internal.pageSize.getHeight(),step=Math.floor(cv.width*ph/pw);
+        for(let y=0,p=0;y<cv.height;y+=step,p++){
+          const s=document.createElement('canvas');s.width=cv.width;s.height=Math.min(step,cv.height-y);
+          s.getContext('2d').drawImage(cv,0,y,cv.width,s.height,0,0,cv.width,s.height);
+          if(p)pdf.addPage();pdf.addImage(s.toDataURL('image/jpeg',.92),'JPEG',0,0,pw,s.height*pw/cv.width);
+        }
+        data=pdf.output('arraybuffer');
+      }finally{el.remove()}
+    }
+    await DL.save({filename:name,data});toast('บันทึกไฟล์แล้ว');
+  }catch(e){if(!e||e.code!=='declined')toast('ส่งออกไม่สำเร็จ: '+((e&&e.message)||e))}
+}
+['pdf','xlsx'].forEach(k=>{const b=document.getElementById('ex-'+k);b.onclick=async()=>{b.disabled=true;try{await doExport(k)}finally{b.disabled=false}}});
+
 /* ================= tabs switching ================= */
 function switchTab(id){
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===id));
+  document.querySelectorAll('.tab-btn').forEach(b=>{const on=b.dataset.tab===id;b.classList.toggle('active',on);if(on){document.getElementById('pageTitle').textContent=b.textContent.trim();document.getElementById('pageCat').textContent=b.dataset.cat}});
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active', p.id===id));
+  window.scrollTo(0,0);
 }
 document.querySelectorAll('.tab-btn').forEach(btn=>{
   btn.addEventListener('click', ()=>switchTab(btn.dataset.tab));
@@ -766,6 +752,7 @@ renderSideBlocks();
 calcTab2();
 calcTab3();
 calcTab4();
+render5();render6();switchTab('tab1');
 </script>
 </body>
 </html>
