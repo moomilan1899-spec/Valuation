@@ -81,7 +81,7 @@ footer.foot{margin-top:28px;font-size:.76rem;color:var(--muted);text-align:cente
 <div class="grp">หมวดที่ราชพัสดุและบัญชีแนบท้าย</div>
 <button class="tab-btn" data-tab="tab5" data-cat="ที่ราชพัสดุและบัญชีแนบท้าย">ที่ดินจากบัญชีแนบท้าย</button>
 <button class="tab-btn" data-tab="tab6" data-cat="ที่ราชพัสดุและบัญชีแนบท้าย">ที่ราชพัสดุแปลงใหญ่</button>
-</aside><main class="main"><div class="topbar"><div><small id="pageCat"></small><h1 id="pageTitle"></h1></div><div class="exp" id="exp" hidden><button class="ex" id="ex-pdf" type="button">ส่งออก PDF</button><button class="ex" id="ex-xlsx" type="button">ส่งออก Excel</button></div></div><div id="toast"></div>
+</aside><main class="main"><div class="topbar"><div><small id="pageCat"></small><h1 id="pageTitle"></h1></div><div class="exp" id="exp"><button class="ex" id="ex-pdf" type="button">ส่งออก PDF</button><button class="ex" id="ex-xlsx" type="button">ส่งออก Excel</button></div></div><div id="toast"></div>
 
   <!-- ================= TAB 1: ถนนหลายด้าน ================= -->
   <section class="tab-panel active card" id="tab1">
@@ -732,7 +732,7 @@ async function doExport(kind){
         data=pdf.output('arraybuffer');
       }finally{el.remove()}
     }
-    await DL.save({filename:name,data});toast('บันทึกไฟล์แล้ว');
+    if(DL)await DL.save({filename:name,data});else{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data]));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)}toast('บันทึกไฟล์แล้ว');
   }catch(e){if(!e||e.code!=='declined')toast('ส่งออกไม่สำเร็จ: '+((e&&e.message)||e))}
 }
 ['pdf','xlsx'].forEach(k=>{const b=document.getElementById('ex-'+k);b.onclick=async()=>{b.disabled=true;try{await doExport(k)}finally{b.disabled=false}}});
