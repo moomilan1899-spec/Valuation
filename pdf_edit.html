@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="th" class="antialiased">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>รวมไฟล์ PDF — Studio Edition</title>
+  
+  <!-- Google Fonts: Noto Sans Thai, Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Noto Sans Thai"', '"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          animation: {
+            'float-slow': 'float 6s ease-in-out infinite',
+            'float-delayed': 'float 6s ease-in-out 3s infinite',
+            'shimmer': 'shimmer 2.2s linear infinite',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0px) rotate(var(--tw-rotate, 0deg))' },
+              '50%': { transform: 'translateY(-6px) rotate(var(--tw-rotate, 0deg))' },
+            },
+            shimmer: {
+              '0%': { transform: 'translateX(-100%)' },
+              '100%': { transform: 'translateX(100%)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- PDF-Lib CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+
+  <style>
+    /* Subtle Architectural Grid Pattern */
+    .bg-grid-pattern {
+      background-size: 32px 32px;
+      background-image: 
+        linear-gradient(to right, rgba(99, 102, 241, 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(99, 102, 241, 0.05) 1px, transparent 1px);
+    }
+    .dark .bg-grid-pattern {
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    }
+
+    /* Glass Surface */
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+    .dark .glass-panel {
+      background: rgba(15, 23, 42, 0.72);
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.35); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.55); }
+
+    /* Drag & Drop Reorder States */
+    .file-item {
+      transition: transform 0.18s cubic-bezier(0.2, 0, 0, 1), background-color 0.18s ease, border-color 0.18s ease, opacity 0.18s ease;
+    }
+    .file-item.dragging {
+      opacity: 0.4;
+      transform: scale(0.985);
+    }
+    .file-item.drag-over-top {
+      box-shadow: 0 -2px 0 0 #6366f1;
+    }
+    .file-item.drag-over-bottom {
+      box-shadow: 0 2px 0 0 #6366f1;
+    }
+  </style>
+
+  <!-- Initialize Theme Immediately -->
+  <script>
+    (function() {
+      const saved = localStorage.getItem('pdf-studio-theme') || 'system';
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (saved === 'dark' || (saved === 'system' && prefersDark)) {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900 dark:bg-[#070B14] dark:text-slate-100 bg-grid-pattern relative overflow-x-hidden transition-colors duration-300 flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+
+  <!-- Ambient Radial Mesh Glows -->
+  <div class="pointer-events-none fixed inset-0 overflow-hidden -z-10" aria-hidden="true">
+    <div class="absolute -top-32 left-1/2 -translate-x-1/2 w-[760px] h-[420px] rounded-full bg-gradient-to-tr from-indigo-500/15 via-violet-500/10 to-sky-400/15 dark:from-indigo-600/20 dark:via-violet-600/15 dark:to-cyan-500/10 blur-3xl"></div>
+    <div class="absolute bottom-0 right-0 w-[480px] h-[360px] rounded-full bg-indigo-500/10 dark:bg-indigo-500/10 blur-3xl"></div>
+  </div>
+
+  <!-- Top Navigation Bar -->
+  <header class="w-full max-w-4xl mx-auto px-4 sm:px-6 pt-6 pb-3 flex flex-wrap items-center justify-between gap-4">
+    <!-- Brand Identity -->
+    <div class="flex items-center gap-3.5">
+      <div class="relative group">
+        <div class="absolute -inset-0.5 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 opacity-60 blur group-hover:opacity-90 transition duration-300"></div>
+        <div class="relative w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-600 via-indigo-600 to-violet-600 flex items-center justify-center text-white shadow-inner border border-white/20">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+          </svg>
+        </div>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-xl sm:text-2xl font-bold tracking-tight bg-gradient-to-r from-slate-900 via-slate-800 to-slate-600 dark:from-white dark:via-slate-100 dark:to-slate-400 bg-clip-text text-transparent">
+            รวมไฟล์ PDF
+          </h1>
+          <span class="px-2 py-0.5 text-[10px] font-mono font-semibold uppercase tracking-wider rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+            Studio
+          </span>
+        </div>
+        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+          จัดเรียงและรวมเอกสารหลายไฟล์เป็นหนึ่งเดียว
+        </p>
+      </div>
+    </div>
+
+    <!-- Right Controls: Privacy Pill & Segmented Theme Switcher -->
+    <div class="flex items-center gap-2.5">
+      <!-- Live Pulsing Privacy Badge -->
+      <div class="hidden md:flex items-center gap-2 px-3.5 py-1.5 rounded-full glass-panel border border-slate-200/80 dark:border-white/10 shadow-sm text-xs font-medium text-slate-600 dark:text-slate-300">
+        <span class="relative flex h-2 w-2">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+        </span>
+        <span>100% Client-Side • ไม่ส่งไฟล์ออกนอกเครื่อง</span>
+      </div>
+
+      <!-- Segmented Theme Switcher (System / Light / Dark) -->
+      <div class="inline-flex items-center p-1 rounded-xl glass-panel border border-slate-200/80 dark:border-white/10 shadow-sm" role="group" aria-label="เลือกธีมการแสดงผล">
+        <button type="button" data-theme-btn="light" title="โหมดสว่าง"
+          class="theme-btn p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+        </button>
+        <button type="button" data-theme-btn="system" title="ตามระบบ (Auto)"
+          class="theme-btn p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        </button>
+        <button type="button" data-theme-btn="dark" title="โหมดมืด"
+          class="theme-btn p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Bento Container -->
+  <main class="w-full max-w-4xl mx-auto px-4 sm:px-6 py-4 flex-1 space-y-5 pb-36 sm:pb-32">
+    
+    <!-- Mobile Privacy Pill -->
+    <div class="md:hidden flex items-center justify-center gap-2 px-3 py-2 rounded-xl glass-panel border border-slate-200/80 dark:border-white/10 text-xs font-medium text-slate-600 dark:text-slate-300">
+      <span class="relative flex h-2 w-2">
+        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+      </span>
+      <span>100% Client-Side • ไม่มีการอัปโหลดไฟล์ออกนอกเครื่อง</span>
+    </div>
+
+    <!-- Hero Dropzone Card -->
+    <section aria-label="พื้นที่นำเข้าไฟล์ PDF" class="relative group">
+      <!-- Animated Ambient Border Glow on Hover/Drag -->
+      <div id="dropGlow" class="absolute -inset-0.5 rounded-3xl bg-gradient-to-r from-indigo-500 via-violet-500 to-sky-500 opacity-0 group-hover:opacity-25 transition duration-300 blur-md pointer-events-none"></div>
+      
+      <div id="dropzone" tabindex="0" role="button" aria-label="คลิกหรือลากไฟล์ PDF มาวางที่นี่"
+        class="relative glass-panel rounded-3xl border-2 border-dashed border-slate-300/90 dark:border-white/15 hover:border-indigo-500 dark:hover:border-indigo-400 p-7 sm:p-10 text-center cursor-pointer transition-all duration-200 shadow-xl shadow-slate-200/40 dark:shadow-black/40 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        
+        <!-- Layered Floating PDF Cards Illustration -->
+        <div class="relative mx-auto w-24 h-20 mb-4 flex items-center justify-center pointer-events-none">
+          <!-- Back Left Card -->
+          <div class="absolute -left-1 top-2 w-12 h-15 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 shadow-md -rotate-12 animate-float-delayed flex flex-col justify-between p-2">
+            <div class="w-5 h-1.5 rounded-full bg-slate-200 dark:bg-slate-600"></div>
+            <div class="space-y-1">
+              <div class="w-full h-1 rounded-full bg-slate-100 dark:bg-slate-700"></div>
+              <div class="w-2/3 h-1 rounded-full bg-slate-100 dark:bg-slate-700"></div>
+            </div>
+          </div>
+          <!-- Back Right Card -->
+          <div class="absolute -right-1 top-2 w-12 h-15 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 shadow-md rotate-12 animate-float-slow flex flex-col justify-between p-2">
+            <div class="w-5 h-1.5 rounded-full bg-indigo-200 dark:bg-indigo-500/40"></div>
+            <div class="space-y-1">
+              <div class="w-full h-1 rounded-full bg-slate-100 dark:bg-slate-700"></div>
+              <div class="w-3/4 h-1 rounded-full bg-slate-100 dark:bg-slate-700"></div>
+            </div>
+          </div>
+          <!-- Center Hero Card -->
+          <div class="relative z-10 w-14 h-16 rounded-2xl bg-gradient-to-b from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-indigo-200 dark:border-indigo-500/30 shadow-lg shadow-indigo-500/15 flex flex-col items-center justify-center group-hover:scale-105 transition-transform duration-200">
+            <span class="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 mb-1">
+              PDF
+            </span>
+            <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+          </div>
+        </div>
+
+        <h2 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+          ลากไฟล์ PDF มาวางที่นี่เพื่อเริ่มต้น
+        </h2>
+        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto">
+          เลือกได้ทีละหลายไฟล์ หรือวางไฟล์จากคลิปบอร์ดได้ทันทีด้วย <kbd class="px-1.5 py-0.5 text-[11px] font-mono bg-slate-200/80 dark:bg-white/10 text-slate-700 dark:text-slate-300 rounded border border-slate-300/60 dark:border-white/10">Ctrl+V</kbd>
+        </p>
+
+        <!-- Quick Action Pill Buttons -->
+        <div class="mt-5 flex flex-wrap items-center justify-center gap-2.5">
+          <button id="btnPickFiles" type="button"
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 text-xs sm:text-sm font-semibold shadow-sm transition-all active:scale-95">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            เลือกไฟล์ PDF
+          </button>
+          <button id="btnPickFolder" type="button"
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/90 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 border border-slate-200/90 dark:border-white/10 text-xs sm:text-sm font-medium shadow-sm transition-all active:scale-95">
+            <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+            เลือกทั้งโฟลเดอร์
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Hidden File Inputs -->
+    <input id="fileInput" type="file" accept="application/pdf,.pdf" multiple class="hidden">
+    <input id="folderInput" type="file" webkitdirectory directory multiple class="hidden">
+
+    <!-- Bento File Queue Section -->
+    <section id="queueSection" class="hidden space-y-3" aria-label="คิวรายการไฟล์ PDF">
+      <!-- Queue Header & Segmented Sort Bar -->
+      <div class="glass-panel rounded-2xl border border-slate-200/80 dark:border-white/10 p-3 sm:px-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+        <div class="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+          <svg class="w-4 h-4 text-indigo-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+          <span>ลากการ์ดเพื่อสลับลำดับก่อนรวมไฟล์</span>
+        </div>
+
+        <!-- Segmented Controls -->
+        <div class="flex flex-wrap items-center gap-1.5">
+          <div class="inline-flex items-center p-0.5 rounded-xl bg-slate-100/90 dark:bg-white/5 border border-slate-200/70 dark:border-white/10">
+            <button id="btnSortAsc" type="button" title="เรียงตามชื่อ ก→ฮ / 1→9"
+              class="px-2.5 py-1 text-xs font-medium rounded-lg text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 hover:shadow-xs transition-all">
+              เรียง A→Z
+            </button>
+            <button id="btnSortDesc" type="button" title="เรียงย้อนกลับ ฮ→ก / 9→1"
+              class="px-2.5 py-1 text-xs font-medium rounded-lg text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 hover:shadow-xs transition-all">
+              Z→A
+            </button>
+            <button id="btnReverse" type="button" title="กลับลำดับรายการปัจจุบัน"
+              class="px-2.5 py-1 text-xs font-medium rounded-lg text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 hover:shadow-xs transition-all">
+              กลับลำดับ
+            </button>
+          </div>
+
+          <button id="btnClear" type="button"
+            class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-xl text-rose-600 dark:text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            ล้างทั้งหมด
+          </button>
+        </div>
+      </div>
+
+      <!-- File List Cards -->
+      <ul id="fileList" class="space-y-2" aria-label="รายการไฟล์ PDF"></ul>
+    </section>
+
+  </main>
+
+  <!-- Floating / Sticky Bento Summary & Action Dock -->
+  <div id="actionDock" class="hidden fixed bottom-0 inset-x-0 z-30 p-3 sm:p-4 pointer-events-none">
+    <div class="max-w-4xl mx-auto pointer-events-auto glass-panel rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-white/15 shadow-2xl shadow-slate-900/15 dark:shadow-black/70 p-3.5 sm:p-4 transition-all">
+      
+      <!-- Live Progress Bar (During Merge) -->
+      <div id="progressWrap" class="hidden mb-3 space-y-1.5">
+        <div class="flex items-center justify-between text-xs font-medium">
+          <span id="progressText" class="text-indigo-600 dark:text-indigo-400 truncate pr-2">กำลังเตรียมรวมไฟล์...</span>
+          <span id="progressPct" class="font-mono text-slate-600 dark:text-slate-300 shrink-0">0%</span>
+        </div>
+        <div class="w-full h-1.5 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
+          <div id="progressFill" class="h-full bg-gradient-to-r from-indigo-500 via-violet-500 to-sky-400 rounded-full transition-all duration-200" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+        <!-- Left: Live Bento Stats Pills -->
+        <div class="flex items-center justify-between sm:justify-start gap-2 flex-wrap">
+          <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100/90 dark:bg-white/5 border border-slate-200/60 dark:border-white/10">
+            <span class="text-xs text-slate-500 dark:text-slate-400">ไฟล์</span>
+            <span id="statFiles" class="font-mono text-xs sm:text-sm font-bold text-slate-900 dark:text-white">0</span>
+          </div>
+          <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
+            <span class="text-xs text-indigo-600 dark:text-indigo-300">หน้ารวม</span>
+            <span id="statPages" class="font-mono text-xs sm:text-sm font-bold text-indigo-700 dark:text-indigo-300">0</span>
+          </div>
+          <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100/90 dark:bg-white/5 border border-slate-200/60 dark:border-white/10">
+            <span class="text-xs text-slate-500 dark:text-slate-400">ขนาด</span>
+            <span id="statSize" class="font-mono text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200">0 KB</span>
+          </div>
+        </div>
+
+        <!-- Right: Inline Output Filename + Primary Shimmer CTA -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+          <!-- Output Filename Input Group -->
+          <div class="flex items-center rounded-xl bg-white dark:bg-slate-900/90 border border-slate-300/90 dark:border-white/15 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500 overflow-hidden shadow-xs">
+            <input id="outputName" type="text" value="merged" aria-label="ชื่อไฟล์ผลลัพธ์" placeholder="ชื่อไฟล์..."
+              class="w-full sm:w-40 md:w-48 px-3 py-2 text-xs sm:text-sm font-medium bg-transparent text-slate-900 dark:text-white focus:outline-none">
+            <button id="btnTimestamp" type="button" title="แทรกวันที่และเวลาต่อท้ายชื่อไฟล์อัตโนมัติ"
+              class="px-2 py-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors" aria-label="แทรกวันที่และเวลา">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </button>
+            <span class="px-2.5 py-2 font-mono text-xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-white/5 border-l border-slate-200 dark:border-white/10 select-none">
+              .pdf
+            </span>
+          </div>
+
+          <!-- Primary Gradient Shimmer CTA -->
+          <button id="btnMerge" type="button"
+            class="group relative overflow-hidden inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs sm:text-sm font-semibold shadow-lg shadow-indigo-600/30 disabled:opacity-45 disabled:pointer-events-none active:scale-[0.98] transition-all shrink-0">
+            <!-- Shimmer Sweep Effect -->
+            <span class="pointer-events-none absolute inset-0 -translate-x-full group-hover:animate-shimmer bg-gradient-to-r from-transparent via-white/25 to-transparent"></span>
+            
+            <svg id="mergeIcon" class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            <svg id="mergeSpinner" class="w-4 h-4 animate-spin hidden shrink-0" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span id="mergeBtnLabel">รวมและดาวน์โหลด PDF</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Toast Notification -->
+  <div id="toastContainer" role="status" aria-live="polite" class="fixed top-5 right-5 z-50 max-w-sm w-[calc(100%-2.5rem)] pointer-events-none flex flex-col gap-2"></div>
+
+  <script>
+    // ==========================================
+    // State & Helpers
+    // ==========================================
+    const items = []; // { id, file, name, size, pages, status: 'loading'|'ready'|'error', error }
+    let nextId = 1;
+    let dragSrcIndex = null;
+
+    const $ = id => document.getElementById(id);
+    const collator = new Intl.Collator('th', { numeric: true, sensitivity: 'base' });
+
+    function formatBytes(bytes) {
+      if (bytes === 0) return '0 B';
+      if (bytes >= 1048576) return (bytes / 1048576).toFixed(2) + ' MB';
+      return Math.max(1, Math.ceil(bytes / 1024)) + ' KB';
+    }
+
+    // ==========================================
+    // 3-Way Theme Switcher (Light / System / Dark)
+    // ==========================================
+    function applyTheme(mode) {
+      localStorage.setItem('pdf-studio-theme', mode);
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const isDark = mode === 'dark' || (mode === 'system' && prefersDark);
+      document.documentElement.classList.toggle('dark', isDark);
+
+      document.querySelectorAll('.theme-btn').forEach(btn => {
+        const active = btn.dataset.themeBtn === mode;
+        btn.classList.toggle('bg-white', active && !isDark);
+        btn.classList.toggle('dark:bg-slate-800', active);
+        btn.classList.toggle('text-indigo-600', active);
+        btn.classList.toggle('dark:text-indigo-400', active);
+        btn.classList.toggle('shadow-xs', active);
+      });
+    }
+
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+      btn.addEventListener('click', () => applyTheme(btn.dataset.themeBtn));
+    });
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      if ((localStorage.getItem('pdf-studio-theme') || 'system') === 'system') applyTheme('system');
+    });
+    applyTheme(localStorage.getItem('pdf-studio-theme') || 'system');
+
+    // ==========================================
+    // Modern Floating Toast System
+    // ==========================================
+    function showToast(message, type = 'info') {
+      const container = $('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = 'pointer-events-auto glass-panel rounded-2xl border p-3.5 shadow-xl flex items-start gap-3 text-xs sm:text-sm transition-all duration-300 translate-x-4 opacity-0 ';
+
+      let iconSvg = '';
+      if (type === 'success') {
+        toast.className += 'border-emerald-500/30 text-emerald-900 dark:text-emerald-100';
+        iconSvg = `<div class="w-6 h-6 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>`;
+      } else if (type === 'error') {
+        toast.className += 'border-rose-500/30 text-rose-900 dark:text-rose-100';
+        iconSvg = `<div class="w-6 h-6 rounded-lg bg-rose-500/15 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>`;
+      } else {
+        toast.className += 'border-indigo-500/30 text-slate-800 dark:text-slate-100';
+        iconSvg = `<div class="w-6 h-6 rounded-lg bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>`;
+      }
+
+      toast.innerHTML = `
+        ${iconSvg}
+        <p class="flex-1 leading-relaxed font-medium pt-0.5">${message}</p>
+        <button type="button" class="text-slate-400 hover:text-slate-600 dark:hover:text-white p-0.5" aria-label="ปิด">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      `;
+
+      const dismiss = () => {
+        toast.classList.add('translate-x-4', 'opacity-0');
+        setTimeout(() => toast.remove(), 250);
+      };
+      toast.querySelector('button').onclick = dismiss;
+      container.appendChild(toast);
+
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-x-4', 'opacity-0');
+      });
+      setTimeout(dismiss, 5500);
+    }
+
+    // ==========================================
+    // File Loading & Live Page Inspection
+    // ==========================================
+    async function inspectPdf(item) {
+      try {
+        const buffer = await item.file.arrayBuffer();
+        const doc = await PDFLib.PDFDocument.load(buffer, { ignoreEncryption: false });
+        item.pages = doc.getPageCount();
+        item.status = 'ready';
+      } catch (err) {
+        item.status = 'error';
+        const msg = (err && err.message) ? err.message.toLowerCase() : '';
+        item.error = (msg.includes('encrypt') || msg.includes('password'))
+          ? 'ติดรหัสผ่าน'
+          : 'ไฟล์เสียหาย';
+      }
+      render();
+    }
+
+    function addFiles(fileList) {
+      const added = [];
+      let skipped = 0;
+
+      for (const file of fileList) {
+        if (file.type === 'application/pdf' || /\.pdf$/i.test(file.name)) {
+          const item = {
+            id: nextId++,
+            file,
+            name: file.name,
+            size: file.size,
+            pages: null,
+            status: 'loading',
+            error: null
+          };
+          items.push(item);
+          added.push(item);
+        } else {
+          skipped++;
+        }
+      }
+
+      if (added.length > 0) {
+        items.sort((a, b) => collator.compare(a.name, b.name));
+        render();
+        added.forEach(inspectPdf);
+      }
+
+      if (skipped > 0 && added.length === 0) {
+        showToast('ไม่พบไฟล์ PDF ในรายการที่เลือก กรุณาเลือกเฉพาะไฟล์ .pdf', 'error');
+      } else if (skipped > 0) {
+        showToast(`เพิ่มไฟล์ PDF แล้ว ${added.length} ไฟล์ (ข้ามไฟล์อื่น ${skipped} ไฟล์)`, 'info');
+      }
+    }
+
+    // ==========================================
+    // Render Queue & Floating Dock
+    // ==========================================
+    function updateStats() {
+      const valid = items.filter(i => i.status !== 'error');
+      const totalPages = valid.reduce((acc, i) => acc + (i.pages || 0), 0);
+      const totalBytes = valid.reduce((acc, i) => acc + i.size, 0);
+      const isLoading = items.some(i => i.status === 'loading');
+      const readyCount = items.filter(i => i.status === 'ready').length;
+
+      $('statFiles').textContent = `${items.length} ไฟล์`;
+      $('statPages').textContent = isLoading ? '...' : `${totalPages.toLocaleString()} หน้า`;
+      $('statSize').textContent = formatBytes(totalBytes);
+      $('btnMerge').disabled = readyCount === 0 || isLoading;
+    }
+
+    function render() {
+      const queueSection = $('queueSection');
+      const actionDock = $('actionDock');
+      const list = $('fileList');
+
+      if (items.length === 0) {
+        queueSection.classList.add('hidden');
+        actionDock.classList.add('hidden');
+        list.innerHTML = '';
+        return;
+      }
+
+      queueSection.classList.remove('hidden');
+      actionDock.classList.remove('hidden');
+      list.innerHTML = '';
+
+      items.forEach((item, index) => {
+        const isErr = item.status === 'error';
+        const li = document.createElement('li');
+        li.draggable = true;
+        li.dataset.index = index;
+        li.className = `file-item group glass-panel rounded-2xl border p-3 sm:px-4 flex items-center gap-3 select-none shadow-xs ${
+          isErr
+            ? 'border-rose-500/40 bg-rose-500/5'
+            : 'border-slate-200/80 dark:border-white/10 hover:border-indigo-500/50 dark:hover:border-indigo-400/40'
+        }`;
+
+        // Drag Handle
+        const grip = document.createElement('div');
+        grip.className = 'cursor-grab active:cursor-grabbing text-slate-400 hover:text-indigo-500 dark:text-slate-500 dark:hover:text-indigo-400 p-1 shrink-0 transition-colors';
+        grip.title = 'ลากเพื่อย้ายลำดับ';
+        grip.innerHTML = `<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M7 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 2zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 14zm6-8a2 2 0 1 0-.001-4.001A2 2 0 0 0 13 6zm0 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 14z"/></svg>`;
+
+        // Order Index Pill
+        const badge = document.createElement('span');
+        badge.className = `w-6 h-6 rounded-lg font-mono text-xs font-bold flex items-center justify-center shrink-0 ${
+          isErr
+            ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
+            : 'bg-slate-200/80 dark:bg-white/10 text-slate-700 dark:text-slate-200 group-hover:bg-indigo-600 group-hover:text-white transition-colors'
+        }`;
+        badge.textContent = index + 1;
+
+        // Filename & Status Badges
+        const mainInfo = document.createElement('div');
+        mainInfo.className = 'flex-1 min-w-0';
+
+        const titleRow = document.createElement('div');
+        titleRow.className = 'flex items-center gap-2';
+
+        const nameSpan = document.createElement('p');
+        nameSpan.className = `text-sm font-semibold truncate ${isErr ? 'text-rose-700 dark:text-rose-300' : 'text-slate-800 dark:text-slate-100'}`;
+        nameSpan.textContent = item.name;
+        nameSpan.title = item.name;
+        titleRow.appendChild(nameSpan);
+
+        const metaRow = document.createElement('div');
+        metaRow.className = 'flex flex-wrap items-center gap-1.5 mt-1';
+
+        // Size Pill
+        const sizePill = `<span class="px-2 py-0.5 rounded-md font-mono text-[11px] bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 border border-slate-200/70 dark:border-white/5">${formatBytes(item.size)}</span>`;
+
+        // Status / Page Count Pill
+        let statusPill = '';
+        if (item.status === 'loading') {
+          statusPill = `<span class="px-2 py-0.5 rounded-md font-mono text-[11px] bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 animate-pulse">กำลังอ่านหน้า...</span>`;
+        } else if (isErr) {
+          statusPill = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20">⚠ ${item.error}</span>`;
+        } else {
+          statusPill = `<span class="px-2 py-0.5 rounded-md font-mono text-[11px] font-medium bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border border-indigo-500/20">${item.pages} หน้า</span>`;
+        }
+
+        metaRow.innerHTML = sizePill + statusPill;
+        mainInfo.append(titleRow, metaRow);
+
+        // Hover / Touch Action Controls
+        const controls = document.createElement('div');
+        controls.className = 'flex items-center gap-1 shrink-0';
+
+        const makeBtn = (title, ariaLabel, svgPath, disabled, onClick, isDanger = false) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.title = title;
+          btn.setAttribute('aria-label', ariaLabel);
+          btn.disabled = disabled;
+          btn.className = `p-1.5 rounded-lg transition-colors disabled:opacity-25 disabled:pointer-events-none ${
+            isDanger
+              ? 'text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-500/10'
+              : 'text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/70 dark:hover:bg-white/10'
+          }`;
+          btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">${svgPath}</svg>`;
+          btn.onclick = onClick;
+          return btn;
+        };
+
+        controls.append(
+          makeBtn('เลื่อนขึ้น', `เลื่อน ${item.name} ขึ้น`, '<path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/>', index === 0, () => {
+            [items[index], items[index - 1]] = [items[index - 1], items[index]];
+            render();
+          }),
+          makeBtn('เลื่อนลง', `เลื่อน ${item.name} ลง`, '<path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>', index === items.length - 1, () => {
+            [items[index], items[index + 1]] = [items[index + 1], items[index]];
+            render();
+          }),
+          makeBtn('ลบออกจากรายการ', `ลบ ${item.name}`, '<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>', false, () => {
+            items.splice(index, 1);
+            render();
+          }, true)
+        );
+
+        li.append(grip, badge, mainInfo, controls);
+
+        // Drag-and-Drop Reordering Listeners
+        li.addEventListener('dragstart', e => {
+          dragSrcIndex = index;
+          li.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+        });
+
+        li.addEventListener('dragend', () => {
+          li.classList.remove('dragging');
+          document.querySelectorAll('.file-item').forEach(el => el.classList.remove('drag-over-top', 'drag-over-bottom'));
+          dragSrcIndex = null;
+        });
+
+        li.addEventListener('dragover', e => {
+          e.preventDefault();
+          if (dragSrcIndex === null || dragSrcIndex === index) return;
+          const mid = li.getBoundingClientRect().top + li.offsetHeight / 2;
+          li.classList.remove('drag-over-top', 'drag-over-bottom');
+          li.classList.add(e.clientY < mid ? 'drag-over-top' : 'drag-over-bottom');
+        });
+
+        li.addEventListener('dragleave', () => {
+          li.classList.remove('drag-over-top', 'drag-over-bottom');
+        });
+
+        li.addEventListener('drop', e => {
+          e.preventDefault();
+          li.classList.remove('drag-over-top', 'drag-over-bottom');
+          if (dragSrcIndex === null || dragSrcIndex === index) return;
+
+          const insertAfter = e.clientY >= li.getBoundingClientRect().top + li.offsetHeight / 2;
+          const [moved] = items.splice(dragSrcIndex, 1);
+          let target = index;
+          if (dragSrcIndex < index) target--;
+          if (insertAfter) target++;
+          items.splice(target, 0, moved);
+          render();
+        });
+
+        list.appendChild(li);
+      });
+
+      updateStats();
+    }
+
+    // ==========================================
+    // Dropzone, Clipboard Paste & Toolbar Events
+    // ==========================================
+    const dropzone = $('dropzone');
+    const dropGlow = $('dropGlow');
+    const fileInput = $('fileInput');
+    const folderInput = $('folderInput');
+
+    dropzone.addEventListener('click', e => {
+      if (e.target.closest('button')) return;
+      fileInput.click();
+    });
+    dropzone.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        fileInput.click();
+      }
+    });
+
+    $('btnPickFiles').addEventListener('click', () => fileInput.click());
+    $('btnPickFolder').addEventListener('click', () => folderInput.click());
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files.length) addFiles(fileInput.files);
+      fileInput.value = '';
+    });
+
+    folderInput.addEventListener('change', () => {
+      if (folderInput.files.length) addFiles(folderInput.files);
+      folderInput.value = '';
+    });
+
+    // External File Drag & Drop
+    dropzone.addEventListener('dragover', e => {
+      e.preventDefault();
+      if (dragSrcIndex === null) {
+        dropzone.classList.add('border-indigo-500', 'scale-[1.01]');
+        dropGlow.classList.add('opacity-40');
+      }
+    });
+
+    dropzone.addEventListener('dragleave', () => {
+      dropzone.classList.remove('border-indigo-500', 'scale-[1.01]');
+      dropGlow.classList.remove('opacity-40');
+    });
+
+    dropzone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropzone.classList.remove('border-indigo-500', 'scale-[1.01]');
+      dropGlow.classList.remove('opacity-40');
+      if (dragSrcIndex === null && e.dataTransfer.files.length) {
+        addFiles(e.dataTransfer.files);
+      }
+    });
+
+    // Ctrl+V Clipboard Paste Support
+    window.addEventListener('paste', e => {
+      if (e.clipboardData && e.clipboardData.files && e.clipboardData.files.length > 0) {
+        e.preventDefault();
+        addFiles(e.clipboardData.files);
+      }
+    });
+
+    // Sort & List Controls
+    $('btnSortAsc').addEventListener('click', () => {
+      items.sort((a, b) => collator.compare(a.name, b.name));
+      render();
+    });
+
+    $('btnSortDesc').addEventListener('click', () => {
+      items.sort((a, b) => collator.compare(b.name, a.name));
+      render();
+    });
+
+    $('btnReverse').addEventListener('click', () => {
+      items.reverse();
+      render();
+    });
+
+    $('btnClear').addEventListener('click', () => {
+      items.length = 0;
+      render();
+    });
+
+    // Auto-Timestamp Button
+    $('btnTimestamp').addEventListener('click', () => {
+      const now = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      const stamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}`;
+      const base = ($('outputName').value.trim() || 'merged').replace(/\.pdf$/i, '').replace(/_\d{8}_\d{4}$/, '');
+      $('outputName').value = `${base}_${stamp}`;
+      showToast('เพิ่มวันที่และเวลาต่อท้ายชื่อไฟล์แล้ว', 'info');
+    });
+
+    // ==========================================
+    // Merge PDF Core Action
+    // ==========================================
+    $('btnMerge').addEventListener('click', async () => {
+      const badItem = items.find(i => i.status === 'error');
+      if (badItem) {
+        showToast(`กรุณาลบไฟล์ที่มีปัญหา (${badItem.name}) ออกก่อนรวมไฟล์`, 'error');
+        return;
+      }
+
+      const readyItems = items.filter(i => i.status === 'ready');
+      if (readyItems.length === 0) return;
+
+      const btn = $('btnMerge');
+      const progressWrap = $('progressWrap');
+      const progressFill = $('progressFill');
+      const progressText = $('progressText');
+      const progressPct = $('progressPct');
+
+      btn.disabled = true;
+      $('mergeIcon').classList.add('hidden');
+      $('mergeSpinner').classList.remove('hidden');
+      $('mergeBtnLabel').textContent = 'กำลังรวมไฟล์...';
+      progressWrap.classList.remove('hidden');
+
+      try {
+        const mergedPdf = await PDFLib.PDFDocument.create();
+        let totalPages = 0;
+
+        for (let i = 0; i < readyItems.length; i++) {
+          const item = readyItems[i];
+          const pct = Math.round((i / readyItems.length) * 90);
+          progressFill.style.width = `${pct}%`;
+          progressPct.textContent = `${pct}%`;
+          progressText.textContent = `กำลังรวม (${i + 1}/${readyItems.length}): ${item.name}`;
+
+          await new Promise(r => setTimeout(r, 15));
+
+          let srcDoc;
+          try {
+            const buf = await item.file.arrayBuffer();
+            srcDoc = await PDFLib.PDFDocument.load(buf);
+          } catch (e) {
+            throw new Error(`ไม่สามารถเปิดไฟล์ "${item.name}" ได้ (อาจติดรหัสผ่านหรือเสียหาย)`);
+          }
+
+          const copied = await mergedPdf.copyPages(srcDoc, srcDoc.getPageIndices());
+          copied.forEach(page => mergedPdf.addPage(page));
+          totalPages += copied.length;
+        }
+
+        progressFill.style.width = '96%';
+        progressPct.textContent = '96%';
+        progressText.textContent = 'กำลังสร้างเอกสาร PDF...';
+        await new Promise(r => setTimeout(r, 20));
+
+        const pdfBytes = await mergedPdf.save();
+
+        let baseName = ($('outputName').value.trim() || 'merged').replace(/\.pdf$/i, '');
+        const finalName = `${baseName}.pdf`;
+
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = finalName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+
+        progressFill.style.width = '100%';
+        progressPct.textContent = '100%';
+        progressText.textContent = 'เสร็จสมบูรณ์!';
+
+        showToast(`รวมสำเร็จ ${readyItems.length} ไฟล์ (${totalPages.toLocaleString()} หน้า) บันทึกเป็น "${finalName}" แล้ว`, 'success');
+      } catch (err) {
+        showToast(err.message || 'เกิดข้อผิดพลาดระหว่างการรวมไฟล์', 'error');
+      } finally {
+        btn.disabled = false;
+        $('mergeIcon').classList.remove('hidden');
+        $('mergeSpinner').classList.add('hidden');
+        $('mergeBtnLabel').textContent = 'รวมและดาวน์โหลด PDF';
+        setTimeout(() => {
+          progressWrap.classList.add('hidden');
+          progressFill.style.width = '0%';
+        }, 1200);
+      }
+    });
+  </script>
+</body>
+</html>
