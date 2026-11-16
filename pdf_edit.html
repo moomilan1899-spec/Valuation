@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>รวมไฟล์ PDF — Studio Edition</title>
+  <title>PDF & QR Studio — Studio Edition</title>
   
   <!-- Google Fonts: Noto Sans Thai, Plus Jakarta Sans & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -43,6 +43,8 @@
 
   <!-- PDF-Lib CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+  <!-- QRious CDN (100% Client-side Canvas QR Generator) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 
   <style>
     /* Subtle Architectural Grid Pattern */
@@ -88,6 +90,20 @@
     .file-item.drag-over-bottom {
       box-shadow: 0 2px 0 0 #6366f1;
     }
+
+    /* Clean Color Input */
+    input[type="color"] {
+      -webkit-appearance: none;
+      border: none;
+      padding: 0;
+    }
+    input[type="color"]::-webkit-color-swatch-wrapper {
+      padding: 0;
+    }
+    input[type="color"]::-webkit-color-swatch {
+      border: none;
+      border-radius: 0.5rem;
+    }
   </style>
 
   <!-- Initialize Theme Immediately -->
@@ -115,22 +131,25 @@
     <div class="flex items-center gap-3.5">
       <div class="relative group">
         <div class="absolute -inset-0.5 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 opacity-60 blur group-hover:opacity-90 transition duration-300"></div>
-        <div class="relative w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-600 via-indigo-600 to-violet-600 flex items-center justify-center text-white shadow-inner border border-white/20">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+        <div id="brandIconBox" class="relative w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-600 via-indigo-600 to-violet-600 flex items-center justify-center text-white shadow-inner border border-white/20">
+          <svg id="brandIconPdf" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+          </svg>
+          <svg id="brandIconQr" class="w-5 h-5 hidden" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
           </svg>
         </div>
       </div>
       <div>
         <div class="flex items-center gap-2">
-          <h1 class="text-xl sm:text-2xl font-bold tracking-tight bg-gradient-to-r from-slate-900 via-slate-800 to-slate-600 dark:from-white dark:via-slate-100 dark:to-slate-400 bg-clip-text text-transparent">
+          <h1 id="headerTitle" class="text-xl sm:text-2xl font-bold tracking-tight bg-gradient-to-r from-slate-900 via-slate-800 to-slate-600 dark:from-white dark:via-slate-100 dark:to-slate-400 bg-clip-text text-transparent">
             รวมไฟล์ PDF
           </h1>
           <span class="px-2 py-0.5 text-[10px] font-mono font-semibold uppercase tracking-wider rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
             Studio
           </span>
         </div>
-        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+        <p id="headerSubtitle" class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
           จัดเรียงและรวมเอกสารหลายไฟล์เป็นหนึ่งเดียว
         </p>
       </div>
@@ -144,7 +163,7 @@
           <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
           <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
         </span>
-        <span>100% Client-Side • ไม่ส่งไฟล์ออกนอกเครื่อง</span>
+        <span>100% Client-Side • ไม่ส่งข้อมูลออกนอกเครื่อง</span>
       </div>
 
       <!-- Segmented Theme Switcher (System / Light / Dark) -->
@@ -166,7 +185,7 @@
   </header>
 
   <!-- Main Bento Container -->
-  <main class="w-full max-w-4xl mx-auto px-4 sm:px-6 py-4 flex-1 space-y-5 pb-36 sm:pb-32">
+  <main class="w-full max-w-4xl mx-auto px-4 sm:px-6 py-3 flex-1 space-y-5 pb-36 sm:pb-32">
     
     <!-- Mobile Privacy Pill -->
     <div class="md:hidden flex items-center justify-center gap-2 px-3 py-2 rounded-xl glass-panel border border-slate-200/80 dark:border-white/10 text-xs font-medium text-slate-600 dark:text-slate-300">
@@ -174,114 +193,317 @@
         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
         <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
       </span>
-      <span>100% Client-Side • ไม่มีการอัปโหลดไฟล์ออกนอกเครื่อง</span>
+      <span>100% Client-Side • ไม่มีการส่งข้อมูลออกนอกเครื่อง</span>
     </div>
 
-    <!-- Hero Dropzone Card -->
-    <section aria-label="พื้นที่นำเข้าไฟล์ PDF" class="relative group">
-      <!-- Animated Ambient Border Glow on Hover/Drag -->
-      <div id="dropGlow" class="absolute -inset-0.5 rounded-3xl bg-gradient-to-r from-indigo-500 via-violet-500 to-sky-500 opacity-0 group-hover:opacity-25 transition duration-300 blur-md pointer-events-none"></div>
-      
-      <div id="dropzone" tabindex="0" role="button" aria-label="คลิกหรือลากไฟล์ PDF มาวางที่นี่"
-        class="relative glass-panel rounded-3xl border-2 border-dashed border-slate-300/90 dark:border-white/15 hover:border-indigo-500 dark:hover:border-indigo-400 p-7 sm:p-10 text-center cursor-pointer transition-all duration-200 shadow-xl shadow-slate-200/40 dark:shadow-black/40 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+    <!-- Studio Mode Switcher Tabs -->
+    <nav class="flex justify-center" aria-label="เลือกเครื่องมือ Studio">
+      <div class="inline-flex p-1.5 rounded-2xl glass-panel border border-slate-200/90 dark:border-white/10 shadow-md shadow-slate-200/30 dark:shadow-black/30 w-full sm:w-auto">
+        <button type="button" id="tabBtnPdf" data-tab="pdf"
+          class="tab-btn flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/25">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+          </svg>
+          <span>รวมไฟล์ PDF</span>
+        </button>
+
+        <button type="button" id="tabBtnQr" data-tab="qr"
+          class="tab-btn flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+          </svg>
+          <span>สร้าง QR Code</span>
+          <span class="px-1.5 py-0.2 text-[10px] font-mono rounded bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 border border-indigo-500/20">NEW</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 1: PDF MERGER PANEL                                               -->
+    <!-- ===================================================================== -->
+    <div id="panelPdf" class="space-y-5">
+      <!-- Hero Dropzone Card -->
+      <section aria-label="พื้นที่นำเข้าไฟล์ PDF" class="relative group">
+        <div id="dropGlow" class="absolute -inset-0.5 rounded-3xl bg-gradient-to-r from-indigo-500 via-violet-500 to-sky-500 opacity-0 group-hover:opacity-25 transition duration-300 blur-md pointer-events-none"></div>
         
-        <!-- Layered Floating PDF Cards Illustration -->
-        <div class="relative mx-auto w-24 h-20 mb-4 flex items-center justify-center pointer-events-none">
-          <!-- Back Left Card -->
-          <div class="absolute -left-1 top-2 w-12 h-15 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 shadow-md -rotate-12 animate-float-delayed flex flex-col justify-between p-2">
-            <div class="w-5 h-1.5 rounded-full bg-slate-200 dark:bg-slate-600"></div>
-            <div class="space-y-1">
-              <div class="w-full h-1 rounded-full bg-slate-100 dark:bg-slate-700"></div>
-              <div class="w-2/3 h-1 rounded-full bg-slate-100 dark:bg-slate-700"></div>
+        <div id="dropzone" tabindex="0" role="button" aria-label="คลิกหรือลากไฟล์ PDF มาวางที่นี่"
+          class="relative glass-panel rounded-3xl border-2 border-dashed border-slate-300/90 dark:border-white/15 hover:border-indigo-500 dark:hover:border-indigo-400 p-7 sm:p-10 text-center cursor-pointer transition-all duration-200 shadow-xl shadow-slate-200/40 dark:shadow-black/40 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          
+          <!-- Layered Floating PDF Cards Illustration -->
+          <div class="relative mx-auto w-24 h-20 mb-4 flex items-center justify-center pointer-events-none">
+            <div class="absolute -left-1 top-2 w-12 h-15 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 shadow-md -rotate-12 animate-float-delayed flex flex-col justify-between p-2">
+              <div class="w-5 h-1.5 rounded-full bg-slate-200 dark:bg-slate-600"></div>
+              <div class="space-y-1">
+                <div class="w-full h-1 rounded-full bg-slate-100 dark:bg-slate-700"></div>
+                <div class="w-2/3 h-1 rounded-full bg-slate-100 dark:bg-slate-700"></div>
+              </div>
+            </div>
+            <div class="absolute -right-1 top-2 w-12 h-15 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 shadow-md rotate-12 animate-float-slow flex flex-col justify-between p-2">
+              <div class="w-5 h-1.5 rounded-full bg-indigo-200 dark:bg-indigo-500/40"></div>
+              <div class="space-y-1">
+                <div class="w-full h-1 rounded-full bg-slate-100 dark:bg-slate-700"></div>
+                <div class="w-3/4 h-1 rounded-full bg-slate-100 dark:bg-slate-700"></div>
+              </div>
+            </div>
+            <div class="relative z-10 w-14 h-16 rounded-2xl bg-gradient-to-b from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-indigo-200 dark:border-indigo-500/30 shadow-lg shadow-indigo-500/15 flex flex-col items-center justify-center group-hover:scale-105 transition-transform duration-200">
+              <span class="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 mb-1">
+                PDF
+              </span>
+              <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
             </div>
           </div>
-          <!-- Back Right Card -->
-          <div class="absolute -right-1 top-2 w-12 h-15 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 shadow-md rotate-12 animate-float-slow flex flex-col justify-between p-2">
-            <div class="w-5 h-1.5 rounded-full bg-indigo-200 dark:bg-indigo-500/40"></div>
-            <div class="space-y-1">
-              <div class="w-full h-1 rounded-full bg-slate-100 dark:bg-slate-700"></div>
-              <div class="w-3/4 h-1 rounded-full bg-slate-100 dark:bg-slate-700"></div>
+
+          <h2 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+            ลากไฟล์ PDF มาวางที่นี่เพื่อเริ่มต้น
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto">
+            เลือกได้ทีละหลายไฟล์ หรือวางไฟล์จากคลิปบอร์ดได้ทันทีด้วย <kbd class="px-1.5 py-0.5 text-[11px] font-mono bg-slate-200/80 dark:bg-white/10 text-slate-700 dark:text-slate-300 rounded border border-slate-300/60 dark:border-white/10">Ctrl+V</kbd>
+          </p>
+
+          <div class="mt-5 flex flex-wrap items-center justify-center gap-2.5">
+            <button id="btnPickFiles" type="button"
+              class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 text-xs sm:text-sm font-semibold shadow-sm transition-all active:scale-95">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              เลือกไฟล์ PDF
+            </button>
+            <button id="btnPickFolder" type="button"
+              class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/90 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 border border-slate-200/90 dark:border-white/10 text-xs sm:text-sm font-medium shadow-sm transition-all active:scale-95">
+              <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+              เลือกทั้งโฟลเดอร์
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Hidden File Inputs -->
+      <input id="fileInput" type="file" accept="application/pdf,.pdf" multiple class="hidden">
+      <input id="folderInput" type="file" webkitdirectory directory multiple class="hidden">
+
+      <!-- Bento File Queue Section -->
+      <section id="queueSection" class="hidden space-y-3" aria-label="คิวรายการไฟล์ PDF">
+        <div class="glass-panel rounded-2xl border border-slate-200/80 dark:border-white/10 p-3 sm:px-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+          <div class="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+            <svg class="w-4 h-4 text-indigo-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            <span>ลากการ์ดเพื่อสลับลำดับก่อนรวมไฟล์</span>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-1.5">
+            <div class="inline-flex items-center p-0.5 rounded-xl bg-slate-100/90 dark:bg-white/5 border border-slate-200/70 dark:border-white/10">
+              <button id="btnSortAsc" type="button" title="เรียงตามชื่อ ก→ฮ / 1→9"
+                class="px-2.5 py-1 text-xs font-medium rounded-lg text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 hover:shadow-xs transition-all">
+                เรียง A→Z
+              </button>
+              <button id="btnSortDesc" type="button" title="เรียงย้อนกลับ ฮ→ก / 9→1"
+                class="px-2.5 py-1 text-xs font-medium rounded-lg text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 hover:shadow-xs transition-all">
+                Z→A
+              </button>
+              <button id="btnReverse" type="button" title="กลับลำดับรายการปัจจุบัน"
+                class="px-2.5 py-1 text-xs font-medium rounded-lg text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 hover:shadow-xs transition-all">
+                กลับลำดับ
+              </button>
+            </div>
+
+            <button id="btnClear" type="button"
+              class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-xl text-rose-600 dark:text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 transition-colors">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              ล้างทั้งหมด
+            </button>
+          </div>
+        </div>
+
+        <ul id="fileList" class="space-y-2" aria-label="รายการไฟล์ PDF"></ul>
+      </section>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 2: QR CODE GENERATOR PANEL                                        -->
+    <!-- ===================================================================== -->
+    <div id="panelQr" class="hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        
+        <!-- Left Bento Column: Content & Customization (7 cols) -->
+        <div class="lg:col-span-7 space-y-4">
+          
+          <!-- Input Data Card -->
+          <div class="glass-panel rounded-3xl border border-slate-200/80 dark:border-white/10 p-5 sm:p-6 shadow-xl shadow-slate-200/30 dark:shadow-black/30 space-y-4">
+            <div class="flex items-center justify-between">
+              <label for="qrInput" class="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white">
+                <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                <span>ลิงก์ (URL) หรือข้อความที่ต้องการสร้าง</span>
+              </label>
+              <button type="button" id="btnQrClear" class="text-xs font-medium text-slate-400 hover:text-rose-500 transition-colors">
+                ล้างข้อความ
+              </button>
+            </div>
+
+            <div class="relative">
+              <textarea id="qrInput" rows="3" placeholder="วางลิงก์ https://... หรือพิมพ์ข้อความภาษาไทย/อังกฤษที่นี่..."
+                class="w-full rounded-2xl bg-white/90 dark:bg-slate-900/90 border border-slate-300/90 dark:border-white/15 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 p-3.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none transition-all resize-none">https://www.treasury.go.th</textarea>
+              <div class="flex items-center justify-between mt-2 text-[11px] text-slate-500 dark:text-slate-400">
+                <div class="flex items-center gap-1.5">
+                  <span>ตัวอย่างด่วน:</span>
+                  <button type="button" data-qr-preset="https://" class="qr-preset px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/5 hover:bg-indigo-500/10 hover:text-indigo-600 dark:hover:text-indigo-400 font-mono transition-colors">URL</button>
+                  <button type="button" data-qr-preset="WIFI:T:WPA;S:ชื่อไวไฟ;P:รหัสผ่าน;;" class="qr-preset px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/5 hover:bg-indigo-500/10 hover:text-indigo-600 dark:hover:text-indigo-400 font-mono transition-colors">Wi-Fi</button>
+                  <button type="button" data-qr-preset="tel:022739020" class="qr-preset px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/5 hover:bg-indigo-500/10 hover:text-indigo-600 dark:hover:text-indigo-400 font-mono transition-colors">เบอร์โทร</button>
+                </div>
+                <span id="qrCharCount" class="font-mono">27 ตัวอักษร</span>
+              </div>
             </div>
           </div>
-          <!-- Center Hero Card -->
-          <div class="relative z-10 w-14 h-16 rounded-2xl bg-gradient-to-b from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-indigo-200 dark:border-indigo-500/30 shadow-lg shadow-indigo-500/15 flex flex-col items-center justify-center group-hover:scale-105 transition-transform duration-200">
-            <span class="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 mb-1">
-              PDF
-            </span>
-            <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
+
+          <!-- Styling & Logo Bento Card -->
+          <div class="glass-panel rounded-3xl border border-slate-200/80 dark:border-white/10 p-5 sm:p-6 shadow-xl shadow-slate-200/30 dark:shadow-black/30 space-y-5">
+            <div class="flex items-center justify-between">
+              <h3 class="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white">
+                <span class="w-2 h-2 rounded-full bg-violet-500"></span>
+                <span>ปรับแต่งรูปแบบและโลโก้</span>
+              </h3>
+              <button type="button" id="btnQrResetStyle" class="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline">
+                รีเซ็ตค่าเริ่มต้น
+              </button>
+            </div>
+
+            <!-- Color Pickers Row -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <!-- Foreground Color -->
+              <div class="flex items-center justify-between p-3 rounded-2xl bg-slate-100/80 dark:bg-white/5 border border-slate-200/70 dark:border-white/10">
+                <div>
+                  <p class="text-xs font-semibold text-slate-800 dark:text-slate-200">สีโค้ด (Foreground)</p>
+                  <p id="qrFgHex" class="font-mono text-[11px] text-slate-500 dark:text-slate-400 uppercase mt-0.5">#0F172A</p>
+                </div>
+                <input id="qrFgColor" type="color" value="#0f172a" aria-label="เลือกสี QR Code"
+                  class="w-9 h-9 rounded-lg cursor-pointer border border-slate-300 dark:border-white/20 shadow-xs">
+              </div>
+
+              <!-- Background Color -->
+              <div class="flex items-center justify-between p-3 rounded-2xl bg-slate-100/80 dark:bg-white/5 border border-slate-200/70 dark:border-white/10">
+                <div>
+                  <p class="text-xs font-semibold text-slate-800 dark:text-slate-200">สีพื้นหลัง (Background)</p>
+                  <p id="qrBgHex" class="font-mono text-[11px] text-slate-500 dark:text-slate-400 uppercase mt-0.5">#FFFFFF</p>
+                </div>
+                <input id="qrBgColor" type="color" value="#ffffff" aria-label="เลือกสีพื้นหลัง QR Code"
+                  class="w-9 h-9 rounded-lg cursor-pointer border border-slate-300 dark:border-white/20 shadow-xs">
+              </div>
+            </div>
+
+            <!-- Size & Error Correction Row -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <!-- Resolution -->
+              <div class="p-3 rounded-2xl bg-slate-100/80 dark:bg-white/5 border border-slate-200/70 dark:border-white/10 space-y-1.5">
+                <label for="qrSize" class="block text-xs font-semibold text-slate-800 dark:text-slate-200">ความละเอียดภาพ (PNG)</label>
+                <select id="qrSize" class="w-full rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 px-3 py-2 text-xs font-mono font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  <option value="256">256 × 256 px (เล็ก)</option>
+                  <option value="512" selected>512 × 512 px (มาตรฐาน)</option>
+                  <option value="1024">1024 × 1024 px (คมชัดสูง)</option>
+                </select>
+              </div>
+
+              <!-- Error Correction Level -->
+              <div class="p-3 rounded-2xl bg-slate-100/80 dark:bg-white/5 border border-slate-200/70 dark:border-white/10 space-y-1.5">
+                <label for="qrEcc" class="block text-xs font-semibold text-slate-800 dark:text-slate-200">ระดับการกู้คืนข้อมูล (ECC)</label>
+                <select id="qrEcc" class="w-full rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 px-3 py-2 text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  <option value="L">L — 7% (โค้ดโปร่ง สแกนไว)</option>
+                  <option value="M" selected>M — 15% (สมดุล แนะนำ)</option>
+                  <option value="Q">Q — 25% (ทนทานสูง)</option>
+                  <option value="H">H — 30% (เหมาะสำหรับใส่โลโก้)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Optional Center Logo Upload -->
+            <div class="p-3.5 rounded-2xl bg-slate-100/80 dark:bg-white/5 border border-dashed border-slate-300 dark:border-white/15 flex flex-wrap items-center justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <div id="qrLogoThumbWrap" class="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-400 overflow-hidden shrink-0">
+                  <svg id="qrLogoPlaceholderIcon" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <img id="qrLogoThumb" src="" alt="โลโก้กลาง QR" class="hidden w-full h-full object-contain">
+                </div>
+                <div>
+                  <p class="text-xs font-semibold text-slate-800 dark:text-slate-200">แทรกโลโก้ตรงกลาง (ไม่บังคับ)</p>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400">รองรับ PNG, JPG, SVG • ปรับ ECC เป็น H อัตโนมัติ</p>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <input id="qrLogoInput" type="file" accept="image/*" class="hidden">
+                <button type="button" id="btnPickQrLogo"
+                  class="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-white/10 shadow-xs transition-all">
+                  เลือกรูปโลโก้
+                </button>
+                <button type="button" id="btnRemoveQrLogo"
+                  class="hidden px-2.5 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-xs font-medium text-rose-600 dark:text-rose-400 border border-rose-500/20 transition-colors">
+                  ลบ
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right Bento Column: Live Preview & Export (5 cols) -->
+        <div class="lg:col-span-5 lg:sticky lg:top-6">
+          <div class="glass-panel rounded-3xl border border-slate-200/80 dark:border-white/10 p-5 sm:p-6 shadow-xl shadow-slate-200/40 dark:shadow-black/40 flex flex-col items-center text-center space-y-5">
+            
+            <div class="w-full flex items-center justify-between">
+              <span class="px-2.5 py-1 rounded-lg font-mono text-[11px] font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border border-indigo-500/20">
+                LIVE PREVIEW
+              </span>
+              <span id="qrBadgeInfo" class="font-mono text-[11px] text-slate-500 dark:text-slate-400">
+                512px • ECC M
+              </span>
+            </div>
+
+            <!-- QR Canvas Frame -->
+            <div class="relative group p-4 rounded-3xl bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-white/10 shadow-inner">
+              <div class="absolute -inset-1 rounded-3xl bg-gradient-to-tr from-indigo-500/20 via-violet-500/20 to-sky-400/20 blur-md opacity-75 pointer-events-none"></div>
+              <canvas id="qrCanvas" width="512" height="512" class="relative w-52 h-52 sm:w-60 sm:h-60 rounded-2xl mx-auto block"></canvas>
+            </div>
+
+            <!-- Output Filename Input -->
+            <div class="w-full flex items-center rounded-xl bg-white dark:bg-slate-900/90 border border-slate-300/90 dark:border-white/15 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500 overflow-hidden shadow-xs">
+              <input id="qrOutputName" type="text" value="qrcode" aria-label="ชื่อไฟล์ QR Code" placeholder="ชื่อไฟล์..."
+                class="w-full px-3 py-2 text-xs sm:text-sm font-medium bg-transparent text-slate-900 dark:text-white focus:outline-none">
+              <button id="btnQrTimestamp" type="button" title="แทรกวันที่และเวลาต่อท้ายชื่อไฟล์"
+                class="px-2 py-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors" aria-label="แทรกวันที่และเวลา">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </button>
+              <span class="px-2.5 py-2 font-mono text-xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-white/5 border-l border-slate-200 dark:border-white/10 select-none">
+                .png
+              </span>
+            </div>
+
+            <!-- Export Actions -->
+            <div class="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2.5">
+              <button id="btnQrDownload" type="button"
+                class="group relative overflow-hidden w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs sm:text-sm font-semibold shadow-lg shadow-indigo-600/30 active:scale-[0.98] transition-all">
+                <span class="pointer-events-none absolute inset-0 -translate-x-full group-hover:animate-shimmer bg-gradient-to-r from-transparent via-white/25 to-transparent"></span>
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                <span>ดาวน์โหลด QR Code (PNG)</span>
+              </button>
+
+              <button id="btnQrCopy" type="button"
+                class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white/90 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 border border-slate-200/90 dark:border-white/10 text-xs sm:text-sm font-semibold shadow-xs active:scale-[0.98] transition-all">
+                <svg class="w-4 h-4 text-indigo-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                </svg>
+                <span>คัดลอกรูปภาพลงคลิปบอร์ด</span>
+              </button>
+            </div>
+
           </div>
         </div>
 
-        <h2 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
-          ลากไฟล์ PDF มาวางที่นี่เพื่อเริ่มต้น
-        </h2>
-        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto">
-          เลือกได้ทีละหลายไฟล์ หรือวางไฟล์จากคลิปบอร์ดได้ทันทีด้วย <kbd class="px-1.5 py-0.5 text-[11px] font-mono bg-slate-200/80 dark:bg-white/10 text-slate-700 dark:text-slate-300 rounded border border-slate-300/60 dark:border-white/10">Ctrl+V</kbd>
-        </p>
-
-        <!-- Quick Action Pill Buttons -->
-        <div class="mt-5 flex flex-wrap items-center justify-center gap-2.5">
-          <button id="btnPickFiles" type="button"
-            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 text-xs sm:text-sm font-semibold shadow-sm transition-all active:scale-95">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            เลือกไฟล์ PDF
-          </button>
-          <button id="btnPickFolder" type="button"
-            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/90 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 border border-slate-200/90 dark:border-white/10 text-xs sm:text-sm font-medium shadow-sm transition-all active:scale-95">
-            <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
-            เลือกทั้งโฟลเดอร์
-          </button>
-        </div>
       </div>
-    </section>
-
-    <!-- Hidden File Inputs -->
-    <input id="fileInput" type="file" accept="application/pdf,.pdf" multiple class="hidden">
-    <input id="folderInput" type="file" webkitdirectory directory multiple class="hidden">
-
-    <!-- Bento File Queue Section -->
-    <section id="queueSection" class="hidden space-y-3" aria-label="คิวรายการไฟล์ PDF">
-      <!-- Queue Header & Segmented Sort Bar -->
-      <div class="glass-panel rounded-2xl border border-slate-200/80 dark:border-white/10 p-3 sm:px-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
-        <div class="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
-          <svg class="w-4 h-4 text-indigo-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
-          <span>ลากการ์ดเพื่อสลับลำดับก่อนรวมไฟล์</span>
-        </div>
-
-        <!-- Segmented Controls -->
-        <div class="flex flex-wrap items-center gap-1.5">
-          <div class="inline-flex items-center p-0.5 rounded-xl bg-slate-100/90 dark:bg-white/5 border border-slate-200/70 dark:border-white/10">
-            <button id="btnSortAsc" type="button" title="เรียงตามชื่อ ก→ฮ / 1→9"
-              class="px-2.5 py-1 text-xs font-medium rounded-lg text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 hover:shadow-xs transition-all">
-              เรียง A→Z
-            </button>
-            <button id="btnSortDesc" type="button" title="เรียงย้อนกลับ ฮ→ก / 9→1"
-              class="px-2.5 py-1 text-xs font-medium rounded-lg text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 hover:shadow-xs transition-all">
-              Z→A
-            </button>
-            <button id="btnReverse" type="button" title="กลับลำดับรายการปัจจุบัน"
-              class="px-2.5 py-1 text-xs font-medium rounded-lg text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 hover:shadow-xs transition-all">
-              กลับลำดับ
-            </button>
-          </div>
-
-          <button id="btnClear" type="button"
-            class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-xl text-rose-600 dark:text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 transition-colors">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-            ล้างทั้งหมด
-          </button>
-        </div>
-      </div>
-
-      <!-- File List Cards -->
-      <ul id="fileList" class="space-y-2" aria-label="รายการไฟล์ PDF"></ul>
-    </section>
+    </div>
 
   </main>
 
-  <!-- Floating / Sticky Bento Summary & Action Dock -->
+  <!-- Floating / Sticky Bento Summary & Action Dock (PDF Mode) -->
   <div id="actionDock" class="hidden fixed bottom-0 inset-x-0 z-30 p-3 sm:p-4 pointer-events-none">
     <div class="max-w-4xl mx-auto pointer-events-auto glass-panel rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-white/15 shadow-2xl shadow-slate-900/15 dark:shadow-black/70 p-3.5 sm:p-4 transition-all">
       
@@ -331,7 +553,6 @@
           <!-- Primary Gradient Shimmer CTA -->
           <button id="btnMerge" type="button"
             class="group relative overflow-hidden inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs sm:text-sm font-semibold shadow-lg shadow-indigo-600/30 disabled:opacity-45 disabled:pointer-events-none active:scale-[0.98] transition-all shrink-0">
-            <!-- Shimmer Sweep Effect -->
             <span class="pointer-events-none absolute inset-0 -translate-x-full group-hover:animate-shimmer bg-gradient-to-r from-transparent via-white/25 to-transparent"></span>
             
             <svg id="mergeIcon" class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
@@ -355,9 +576,11 @@
     // ==========================================
     // State & Helpers
     // ==========================================
+    let currentTab = 'pdf'; // 'pdf' | 'qr'
     const items = []; // { id, file, name, size, pages, status: 'loading'|'ready'|'error', error }
     let nextId = 1;
     let dragSrcIndex = null;
+    let qrLogoImage = null;
 
     const $ = id => document.getElementById(id);
     const collator = new Intl.Collator('th', { numeric: true, sensitivity: 'base' });
@@ -367,6 +590,57 @@
       if (bytes >= 1048576) return (bytes / 1048576).toFixed(2) + ' MB';
       return Math.max(1, Math.ceil(bytes / 1024)) + ' KB';
     }
+
+    function getTimestampString() {
+      const now = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      return `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}`;
+    }
+
+    // ==========================================
+    // Tab Navigation Switcher
+    // ==========================================
+    function switchTab(tab) {
+      currentTab = tab;
+      const isPdf = tab === 'pdf';
+
+      // Panels
+      $('panelPdf').classList.toggle('hidden', !isPdf);
+      $('panelQr').classList.toggle('hidden', isPdf);
+
+      // Sticky Dock (only show in PDF mode when files exist)
+      if (isPdf && items.length > 0) {
+        $('actionDock').classList.remove('hidden');
+      } else {
+        $('actionDock').classList.add('hidden');
+      }
+
+      // Header Branding Update
+      $('headerTitle').textContent = isPdf ? 'รวมไฟล์ PDF' : 'สร้าง QR Code';
+      $('headerSubtitle').textContent = isPdf
+        ? 'จัดเรียงและรวมเอกสารหลายไฟล์เป็นหนึ่งเดียว'
+        : 'สร้างคิวอาร์โค้ดคุณภาพสูง ปรับแต่งสีและโลโก้ได้ทันที';
+      $('brandIconPdf').classList.toggle('hidden', !isPdf);
+      $('brandIconQr').classList.toggle('hidden', isPdf);
+
+      // Tab Button Active Styling
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        const active = btn.dataset.tab === tab;
+        if (active) {
+          btn.className = 'tab-btn flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/25';
+        } else {
+          btn.className = 'tab-btn flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white';
+        }
+      });
+
+      if (!isPdf) {
+        renderQrCode();
+      }
+    }
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    });
 
     // ==========================================
     // 3-Way Theme Switcher (Light / System / Dark)
@@ -437,7 +711,7 @@
     }
 
     // ==========================================
-    // File Loading & Live Page Inspection
+    // TAB 1: PDF File Loading & Live Page Inspection
     // ==========================================
     async function inspectPdf(item) {
       try {
@@ -491,7 +765,7 @@
     }
 
     // ==========================================
-    // Render Queue & Floating Dock
+    // Render PDF Queue & Floating Dock
     // ==========================================
     function updateStats() {
       const valid = items.filter(i => i.status !== 'error');
@@ -519,7 +793,9 @@
       }
 
       queueSection.classList.remove('hidden');
-      actionDock.classList.remove('hidden');
+      if (currentTab === 'pdf') {
+        actionDock.classList.remove('hidden');
+      }
       list.innerHTML = '';
 
       items.forEach((item, index) => {
@@ -533,13 +809,11 @@
             : 'border-slate-200/80 dark:border-white/10 hover:border-indigo-500/50 dark:hover:border-indigo-400/40'
         }`;
 
-        // Drag Handle
         const grip = document.createElement('div');
         grip.className = 'cursor-grab active:cursor-grabbing text-slate-400 hover:text-indigo-500 dark:text-slate-500 dark:hover:text-indigo-400 p-1 shrink-0 transition-colors';
         grip.title = 'ลากเพื่อย้ายลำดับ';
         grip.innerHTML = `<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M7 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 2zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 14zm6-8a2 2 0 1 0-.001-4.001A2 2 0 0 0 13 6zm0 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 14z"/></svg>`;
 
-        // Order Index Pill
         const badge = document.createElement('span');
         badge.className = `w-6 h-6 rounded-lg font-mono text-xs font-bold flex items-center justify-center shrink-0 ${
           isErr
@@ -548,7 +822,6 @@
         }`;
         badge.textContent = index + 1;
 
-        // Filename & Status Badges
         const mainInfo = document.createElement('div');
         mainInfo.className = 'flex-1 min-w-0';
 
@@ -564,10 +837,8 @@
         const metaRow = document.createElement('div');
         metaRow.className = 'flex flex-wrap items-center gap-1.5 mt-1';
 
-        // Size Pill
         const sizePill = `<span class="px-2 py-0.5 rounded-md font-mono text-[11px] bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 border border-slate-200/70 dark:border-white/5">${formatBytes(item.size)}</span>`;
 
-        // Status / Page Count Pill
         let statusPill = '';
         if (item.status === 'loading') {
           statusPill = `<span class="px-2 py-0.5 rounded-md font-mono text-[11px] bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 animate-pulse">กำลังอ่านหน้า...</span>`;
@@ -580,7 +851,6 @@
         metaRow.innerHTML = sizePill + statusPill;
         mainInfo.append(titleRow, metaRow);
 
-        // Hover / Touch Action Controls
         const controls = document.createElement('div');
         controls.className = 'flex items-center gap-1 shrink-0';
 
@@ -617,7 +887,6 @@
 
         li.append(grip, badge, mainInfo, controls);
 
-        // Drag-and-Drop Reordering Listeners
         li.addEventListener('dragstart', e => {
           dragSrcIndex = index;
           li.classList.add('dragging');
@@ -663,7 +932,7 @@
     }
 
     // ==========================================
-    // Dropzone, Clipboard Paste & Toolbar Events
+    // PDF Dropzone, Clipboard Paste & Toolbar Events
     // ==========================================
     const dropzone = $('dropzone');
     const dropGlow = $('dropGlow');
@@ -694,7 +963,6 @@
       folderInput.value = '';
     });
 
-    // External File Drag & Drop
     dropzone.addEventListener('dragover', e => {
       e.preventDefault();
       if (dragSrcIndex === null) {
@@ -717,15 +985,13 @@
       }
     });
 
-    // Ctrl+V Clipboard Paste Support
     window.addEventListener('paste', e => {
-      if (e.clipboardData && e.clipboardData.files && e.clipboardData.files.length > 0) {
+      if (currentTab === 'pdf' && e.clipboardData && e.clipboardData.files && e.clipboardData.files.length > 0) {
         e.preventDefault();
         addFiles(e.clipboardData.files);
       }
     });
 
-    // Sort & List Controls
     $('btnSortAsc').addEventListener('click', () => {
       items.sort((a, b) => collator.compare(a.name, b.name));
       render();
@@ -746,13 +1012,9 @@
       render();
     });
 
-    // Auto-Timestamp Button
     $('btnTimestamp').addEventListener('click', () => {
-      const now = new Date();
-      const pad = n => String(n).padStart(2, '0');
-      const stamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}`;
       const base = ($('outputName').value.trim() || 'merged').replace(/\.pdf$/i, '').replace(/_\d{8}_\d{4}$/, '');
-      $('outputName').value = `${base}_${stamp}`;
+      $('outputName').value = `${base}_${getTimestampString()}`;
       showToast('เพิ่มวันที่และเวลาต่อท้ายชื่อไฟล์แล้ว', 'info');
     });
 
@@ -845,6 +1107,200 @@
         }, 1200);
       }
     });
+
+    // ==========================================
+    // TAB 2: QR CODE GENERATOR LOGIC
+    // ==========================================
+    function encodeUtf8ForQr(str) {
+      // Ensures Thai & Unicode characters encode cleanly in QRious
+      return unescape(encodeURIComponent(str));
+    }
+
+    function renderQrCode() {
+      const rawText = $('qrInput').value;
+      const text = rawText.trim() || ' ';
+      const size = parseInt($('qrSize').value, 10) || 512;
+      const ecc = $('qrEcc').value || 'M';
+      const fg = $('qrFgColor').value || '#0f172a';
+      const bg = $('qrBgColor').value || '#ffffff';
+
+      $('qrCharCount').textContent = `${rawText.length} ตัวอักษร`;
+      $('qrFgHex').textContent = fg.toUpperCase();
+      $('qrBgHex').textContent = bg.toUpperCase();
+      $('qrBadgeInfo').textContent = `${size}px • ECC ${ecc}`;
+
+      const canvas = $('qrCanvas');
+      const padding = Math.round(size * 0.06); // Quiet zone border
+
+      try {
+        new QRious({
+          element: canvas,
+          value: encodeUtf8ForQr(text),
+          size: size,
+          padding: padding,
+          level: ecc,
+          foreground: fg,
+          background: bg
+        });
+
+        // Draw Center Logo if uploaded
+        if (qrLogoImage) {
+          const ctx = canvas.getContext('2d');
+          const logoBoxSize = Math.round(size * 0.22);
+          const x = Math.round((size - logoBoxSize) / 2);
+          const y = Math.round((size - logoBoxSize) / 2);
+          const pad = Math.round(logoBoxSize * 0.14);
+          const radius = Math.round(logoBoxSize * 0.22);
+
+          // Rounded background plate behind logo
+          ctx.save();
+          ctx.fillStyle = bg;
+          ctx.beginPath();
+          ctx.roundRect(x - pad, y - pad, logoBoxSize + pad * 2, logoBoxSize + pad * 2, radius);
+          ctx.fill();
+
+          // Subtle border around logo plate
+          ctx.strokeStyle = fg + '26';
+          ctx.lineWidth = Math.max(2, Math.round(size * 0.004));
+          ctx.stroke();
+
+          // Clip & draw logo image maintaining aspect ratio
+          ctx.beginPath();
+          ctx.roundRect(x, y, logoBoxSize, logoBoxSize, Math.round(radius * 0.75));
+          ctx.clip();
+
+          const ratio = Math.min(logoBoxSize / qrLogoImage.width, logoBoxSize / qrLogoImage.height);
+          const drawW = qrLogoImage.width * ratio;
+          const drawH = qrLogoImage.height * ratio;
+          const drawX = x + (logoBoxSize - drawW) / 2;
+          const drawY = y + (logoBoxSize - drawH) / 2;
+          ctx.drawImage(qrLogoImage, drawX, drawY, drawW, drawH);
+          ctx.restore();
+        }
+      } catch (err) {
+        showToast('ข้อความยาวเกินความจุของ QR Code กรุณาลดความยาวข้อความ', 'error');
+      }
+    }
+
+    // Live QR Input & Styling Listeners
+    $('qrInput').addEventListener('input', renderQrCode);
+    $('qrFgColor').addEventListener('input', renderQrCode);
+    $('qrBgColor').addEventListener('input', renderQrCode);
+    $('qrSize').addEventListener('change', renderQrCode);
+    $('qrEcc').addEventListener('change', renderQrCode);
+
+    $('btnQrClear').addEventListener('click', () => {
+      $('qrInput').value = '';
+      $('qrInput').focus();
+      renderQrCode();
+    });
+
+    document.querySelectorAll('.qr-preset').forEach(btn => {
+      btn.addEventListener('click', () => {
+        $('qrInput').value = btn.dataset.qrPreset;
+        $('qrInput').focus();
+        renderQrCode();
+      });
+    });
+
+    $('btnQrResetStyle').addEventListener('click', () => {
+      $('qrFgColor').value = '#0f172a';
+      $('qrBgColor').value = '#ffffff';
+      $('qrSize').value = '512';
+      $('qrEcc').value = qrLogoImage ? 'H' : 'M';
+      renderQrCode();
+      showToast('รีเซ็ตรูปแบบ QR Code เป็นค่าเริ่มต้นแล้ว', 'info');
+    });
+
+    // Center Logo Upload & Removal
+    $('btnPickQrLogo').addEventListener('click', () => $('qrLogoInput').click());
+    $('qrLogoInput').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        const img = new Image();
+        img.onload = () => {
+          qrLogoImage = img;
+          $('qrLogoThumb').src = ev.target.result;
+          $('qrLogoThumb').classList.remove('hidden');
+          $('qrLogoPlaceholderIcon').classList.add('hidden');
+          $('btnRemoveQrLogo').classList.remove('hidden');
+          $('qrEcc').value = 'H'; // Automatically boost ECC to High for scan reliability
+          renderQrCode();
+          showToast('เพิ่มโลโก้ตรงกลาง QR Code แล้ว (ปรับ ECC เป็น H อัตโนมัติ)', 'success');
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+      $('qrLogoInput').value = '';
+    });
+
+    $('btnRemoveQrLogo').addEventListener('click', () => {
+      qrLogoImage = null;
+      $('qrLogoThumb').src = '';
+      $('qrLogoThumb').classList.add('hidden');
+      $('qrLogoPlaceholderIcon').classList.remove('hidden');
+      $('btnRemoveQrLogo').classList.add('hidden');
+      renderQrCode();
+      showToast('ลบโลโก้ออกจาก QR Code แล้ว', 'info');
+    });
+
+    // Timestamp for QR Filename
+    $('btnQrTimestamp').addEventListener('click', () => {
+      const base = ($('qrOutputName').value.trim() || 'qrcode').replace(/\.png$/i, '').replace(/_\d{8}_\d{4}$/, '');
+      $('qrOutputName').value = `${base}_${getTimestampString()}`;
+      showToast('เพิ่มวันที่และเวลาต่อท้ายชื่อไฟล์แล้ว', 'info');
+    });
+
+    // Download QR Code PNG
+    $('btnQrDownload').addEventListener('click', () => {
+      if (!$('qrInput').value.trim()) {
+        showToast('กรุณากรอกลิงก์หรือข้อความก่อนดาวน์โหลด QR Code', 'error');
+        $('qrInput').focus();
+        return;
+      }
+      renderQrCode();
+      const canvas = $('qrCanvas');
+      let baseName = ($('qrOutputName').value.trim() || 'qrcode').replace(/\.png$/i, '');
+      const finalName = `${baseName}.png`;
+
+      canvas.toBlob(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = finalName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+        showToast(`บันทึกภาพ QR Code เป็น "${finalName}" แล้ว`, 'success');
+      }, 'image/png');
+    });
+
+    // Copy QR Code Image to Clipboard
+    $('btnQrCopy').addEventListener('click', () => {
+      if (!$('qrInput').value.trim()) {
+        showToast('กรุณากรอกลิงก์หรือข้อความก่อนคัดลอกรูปภาพ', 'error');
+        $('qrInput').focus();
+        return;
+      }
+      renderQrCode();
+      const canvas = $('qrCanvas');
+      canvas.toBlob(async blob => {
+        try {
+          await navigator.clipboard.write([
+            new ClipboardItem({ 'image/png': blob })
+          ]);
+          showToast('คัดลอกรูปภาพ QR Code ลงคลิปบอร์ดแล้ว (กด Ctrl+V เพื่อวางได้ทันที)', 'success');
+        } catch (err) {
+          showToast('เบราว์เซอร์ไม่รองรับการคัดลอกรูปภาพอัตโนมัติ กรุณากดดาวน์โหลดแทน', 'error');
+        }
+      }, 'image/png');
+    });
+
+    // Initial QR Render
+    renderQrCode();
   </script>
 </body>
 </html>
